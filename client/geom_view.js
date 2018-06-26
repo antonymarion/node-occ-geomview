@@ -1274,6 +1274,19 @@ GeomView.prototype.__solidObjectsNode = function (json) {
 };
 
 
+GeomView.prototype.__measurePointsNode = function (json) {
+    const me = this;
+    let rootNode = me.scene.getObjectByName("MEASUREPOINTS");
+    if (!rootNode) {
+        rootNode = new THREE.Object3D();
+        rootNode.name = "MEASUREPOINTS";
+        me.scene.add(rootNode);
+    }
+    return rootNode;
+};
+
+
+
 GeomView.prototype.selectObject = function (object) {
 
     const me = this;
