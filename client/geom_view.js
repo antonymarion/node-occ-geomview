@@ -34,7 +34,7 @@ THREE.OutlinePass = function (resolution, scene, camera, selectedObjects) {
     this.selectedObjects = selectedObjects !== undefined ? selectedObjects : [];
     this.visibleEdgeColor = new THREE.Color(1, 1, 1);
     this.hiddenEdgeColor = new THREE.Color(1, 1, 1)
-    this.edgeGlow = 2;
+    this.edgeGlow = 1;
     this.usePatternTexture = true;
     this.edgeThickness = 1.5;
     this.edgeStrength = 1;
