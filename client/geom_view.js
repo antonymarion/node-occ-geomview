@@ -798,7 +798,7 @@ function GeomView(container, width, height) {
     var ctx = canvas.getContext("2d");
     var grd = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
     grd.addColorStop(0, "lightblue");
-    grd.addColorStop(.5, "cadetblue");
+    grd.addColorStop(.5, "white");
     grd.addColorStop(1, "lightblue");
 
     ctx.fillStyle = grd;
