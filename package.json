@@ -75,5 +75,5 @@
   "scripts": {
     "test": "npm test"
   },
-  "version": ""
+  "version": "1.0.0"
 }
