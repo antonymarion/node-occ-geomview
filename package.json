@@ -15,15 +15,15 @@
           "sshUrl": "git+ssh://git@github.com/antonymarion/node-occ-geomview.git",
           "httpsUrl": "git+https://github.com/antonymarion/node-occ-geomview.git",
           "gitUrl": "git://github.com/antonymarion/node-occ-geomview.git",
-          "shortcut": "github:antonymarion/node-occ-geomview#0.1.2",
-          "directUrl": "https://raw.githubusercontent.com/antonymarion/node-occ-geomview/0.1.2/package.json"
+          "shortcut": "github:antonymarion/node-occ-geomview",
+          "directUrl": "https://raw.githubusercontent.com/antonymarion/node-occ-geomview/package.json"
         }
       },
       "C:\\Users\\antony\\projects\\cartoonline_06_06\\frontend_server"
     ]
   ],
   "_from": "git+https://github.com/antonymarion/node-occ-geomview.git",
-  "_id": "node-occ-geomview@0.1.2",
+  "_id": "node-occ-geomview",
   "_inCache": true,
   "_location": "/node-occ-geomview",
   "_phantomChildren": {},
@@ -41,8 +41,8 @@
       "sshUrl": "git+ssh://git@github.com/antonymarion/node-occ-geomview.git",
       "httpsUrl": "git+https://github.com/antonymarion/node-occ-geomview.git",
       "gitUrl": "git://github.com/antonymarion/node-occ-geomview.git",
-      "shortcut": "github:antonymarion/node-occ-geomview#0.1.2",
-      "directUrl": "https://raw.githubusercontent.com/antonymarion/node-occ-geomview/0.1.2/package.json"
+      "shortcut": "github:antonymarion/node-occ-geomview",
+      "directUrl": "https://raw.githubusercontent.com/antonymarion/node-occ-geomview/package.json"
     }
   },
   "_requiredBy": [
@@ -75,5 +75,5 @@
   "scripts": {
     "test": "npm test"
   },
-  "version": "0.1.2"
+  "version": "1"
 }
