@@ -2,67 +2,67 @@
   "_args": [
     [
       {
-        "raw": "node-occ-geomview@git+https://github.com/antony-marion/node-occ-geomview.git",
+        "raw": "node-occ-geomview@git+https://github.com/antonymarion/node-occ-geomview.git",
         "scope": null,
         "escapedName": "node-occ-geomview",
         "name": "node-occ-geomview",
-        "rawSpec": "git+https://github.com/antony-marion/node-occ-geomview.git",
-        "spec": "git+https://github.com/antony-marion/node-occ-geomview.git",
+        "rawSpec": "git+https://github.com/antonymarion/node-occ-geomview.git",
+        "spec": "git+https://github.com/antonymarion/node-occ-geomview.git",
         "type": "hosted",
         "hosted": {
           "type": "github",
-          "ssh": "git@github.com:antony-marion/node-occ-geomview.git",
-          "sshUrl": "git+ssh://git@github.com/antony-marion/node-occ-geomview.git",
-          "httpsUrl": "git+https://github.com/antony-marion/node-occ-geomview.git",
-          "gitUrl": "git://github.com/antony-marion/node-occ-geomview.git",
-          "shortcut": "github:antony-marion/node-occ-geomview#0.1.2",
-          "directUrl": "https://raw.githubusercontent.com/antony-marion/node-occ-geomview/0.1.2/package.json"
+          "ssh": "git@github.com:antonymarion/node-occ-geomview.git",
+          "sshUrl": "git+ssh://git@github.com/antonymarion/node-occ-geomview.git",
+          "httpsUrl": "git+https://github.com/antonymarion/node-occ-geomview.git",
+          "gitUrl": "git://github.com/antonymarion/node-occ-geomview.git",
+          "shortcut": "github:antonymarion/node-occ-geomview#0.1.2",
+          "directUrl": "https://raw.githubusercontent.com/antonymarion/node-occ-geomview/0.1.2/package.json"
         }
       },
       "C:\\Users\\antony\\projects\\cartoonline_06_06\\frontend_server"
     ]
   ],
-  "_from": "git+https://github.com/antony-marion/node-occ-geomview.git",
+  "_from": "git+https://github.com/antonymarion/node-occ-geomview.git",
   "_id": "node-occ-geomview@0.1.2",
   "_inCache": true,
   "_location": "/node-occ-geomview",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "node-occ-geomview@git+https://github.com/antony-marion/node-occ-geomview.git",
+    "raw": "node-occ-geomview@git+https://github.com/antonymarion/node-occ-geomview.git",
     "scope": null,
     "escapedName": "node-occ-geomview",
     "name": "node-occ-geomview",
-    "rawSpec": "git+https://github.com/antony-marion/node-occ-geomview.git",
-    "spec": "git+https://github.com/antony-marion/node-occ-geomview.git",
+    "rawSpec": "git+https://github.com/antonymarion/node-occ-geomview.git",
+    "spec": "git+https://github.com/antonymarion/node-occ-geomview.git",
     "type": "hosted",
     "hosted": {
       "type": "github",
-      "ssh": "git@github.com:antony-marion/node-occ-geomview.git",
-      "sshUrl": "git+ssh://git@github.com/antony-marion/node-occ-geomview.git",
-      "httpsUrl": "git+https://github.com/antony-marion/node-occ-geomview.git",
-      "gitUrl": "git://github.com/antony-marion/node-occ-geomview.git",
-      "shortcut": "github:antony-marion/node-occ-geomview#0.1.2",
-      "directUrl": "https://raw.githubusercontent.com/antony-marion/node-occ-geomview/0.1.2/package.json"
+      "ssh": "git@github.com:antonymarion/node-occ-geomview.git",
+      "sshUrl": "git+ssh://git@github.com/antonymarion/node-occ-geomview.git",
+      "httpsUrl": "git+https://github.com/antonymarion/node-occ-geomview.git",
+      "gitUrl": "git://github.com/antonymarion/node-occ-geomview.git",
+      "shortcut": "github:antonymarion/node-occ-geomview#0.1.2",
+      "directUrl": "https://raw.githubusercontent.com/antonymarion/node-occ-geomview/0.1.2/package.json"
     }
   },
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git+https://github.com/antony-marion/node-occ-geomview.git#6d5b93b30e70fca4c55b6956290e5038dd7f1c38",
+  "_resolved": "git+https://github.com/antonymarion/node-occ-geomview.git#6d5b93b30e70fca4c55b6956290e5038dd7f1c38",
   "_shasum": "f68dc998bdcedbb1146be4726f048c8456e402d6",
   "_shrinkwrap": null,
-  "_spec": "node-occ-geomview@git+https://github.com/antony-marion/node-occ-geomview.git",
+  "_spec": "node-occ-geomview@git+https://github.com/antonymarion/node-occ-geomview.git",
   "_where": "C:\\Users\\antony\\projects\\cartoonline_06_06\\frontend_server",
   "author": {
     "name": "Etienne Rossignon"
   },
   "bugs": {
-    "url": "https://github.com/antony-marion/node-occ-geomview/issues"
+    "url": "https://github.com/antonymarion/node-occ-geomview/issues"
   },
   "dependencies": {},
   "devDependencies": {},
   "gitHead": "6d5b93b30e70fca4c55b6956290e5038dd7f1c38",
-  "homepage": "https://github.com/antony-marion/node-occ-geomview#readme",
+  "homepage": "https://github.com/antonymarion/node-occ-geomview#readme",
   "license": "MIT",
   "main": "index.js",
   "name": "node-occ-geomview",
@@ -70,7 +70,7 @@
   "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antony-marion/node-occ-geomview.git"
+    "url": "git+https://github.com/antonymarion/node-occ-geomview.git"
   },
   "scripts": {
     "test": "npm test"
