@@ -864,6 +864,7 @@ function GeomView(container, width, height) {
 
 
     me.renderer = new THREE.WebGLRenderer({
+        preserveDrawingBuffer: true,
         antialias: true,
         alpha: false
     });
