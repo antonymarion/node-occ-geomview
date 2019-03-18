@@ -1657,7 +1657,10 @@ function GeomView(container, width, height) {
 
         const me = this;
 
-        me.renderer.localClippingEnabled = typeof me.renderer.localClippingEnabled === "boolean" ? me.renderer.localClippingEnabled : true;
+        me.renderer.localClippingEnabled =
+            typeof me.renderer.localClippingEnabled === "boolean"
+                ?
+                me.renderer.localClippingEnabled : true;
 
         if (me.renderer.localClippingEnabled) {
 
@@ -1677,6 +1680,13 @@ function GeomView(container, width, height) {
             if (me.renderer.clippingAxis === "Oz") {
 
                 normal = new THREE.Vector3(0, 0, 1);
+
+            }
+
+            if (me.renderer.clippingAxis === "Custom") {
+
+                normal = new THREE.Vector3(me.renderer.xValue, me.renderer.yValue, me.renderer.zValue);
+
             }
 
             me.renderer.clippingValue = me.renderer.clippingValue || 0;
