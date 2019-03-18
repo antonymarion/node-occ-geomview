@@ -1692,8 +1692,10 @@ function GeomView(container, width, height) {
             me.renderer.clippingValue = me.renderer.clippingValue || 0;
 
             var globalPlane = new THREE.Plane(normal, me.renderer.clippingValue);
-            var globalPlane2 = new THREE.Plane(normal, me.renderer.clippingValue + 2);
-            me.renderer.clippingPlanes = [globalPlane, globalPlane2];
+            // var globalPlane2 = new THREE.Plane(normal, me.renderer.clippingValue + 2);
+            // me.renderer.clippingPlanes = [globalPlane, globalPlane2];
+            me.renderer.clipShadows = false;
+            me.renderer.clippingPlanes = [globalPlane];
 
         } else {
             me.renderer.clippingPlanes = [];
@@ -2162,7 +2164,7 @@ function process_face_mesh(rootNode, jsonEntry, color) {
 
     const model = jsonLoader.parse(jsonFace, /* texturePath */ undefined);
 
-    const material = new THREE.MeshLambertMaterial({color: rgb2hex(color)});
+    const material = new THREE.MeshLambertMaterial({color: rgb2hex(color), side: THREE.DoubleSide});
     const mesh = new THREE.Mesh(model.geometry, material);
     mesh.properties = mesh.properties || {};
     mesh.properties.OCCType = "face";
@@ -2406,3 +2408,5 @@ GeomView.prototype.onChangeView = function (viewName) {
 
 exports.GeomView = GeomView;
 exports.GeomTools = GeomTools;
+
+
