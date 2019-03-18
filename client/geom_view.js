@@ -2406,10 +2406,3 @@ GeomView.prototype.onChangeView = function (viewName) {
 
 exports.GeomView = GeomView;
 exports.GeomTools = GeomTools;
-
-
-//////////////////
-// WEBPACK FOOTER
-// ./node_modules/node-occ-geomview/client/geom_view.js
-// module id = 219
-// module chunks = 0 1
