@@ -17,7 +17,26 @@
 
 let THREE = global.THREE;
 
+// sets this vector to the coordinates of a mouse event, uses touch event if applicable
+THREE.Vector2.prototype.setFromEvent = function (event) {
 
+    this.x = (event.clientX !== undefined) ? event.clientX : (event.touches && event.touches[0].clientX);
+    this.y = (event.clientY !== undefined) ? event.clientY : (event.touches && event.touches[0].clientY);
+    return this;
+
+};
+
+// calculate mouse position in normalized device coordinates
+THREE.Vector2.prototype.setToNormalizedDeviceCoordinates = function (event, window) {
+
+    this.setFromEvent(event);
+    this.x = (this.x / window.innerWidth) * 2 - 1;
+    this.y = -(this.y / window.innerHeight) * 2 + 1;
+    return this;
+
+};
+
+require("../../../node_modules/three/examples/js/loaders/deprecated/LegacyJSONLoader.js");
 require("../../../node_modules/three/examples/js/shaders/CopyShader");
 require("../../../node_modules/three/examples/js/shaders/FXAAShader");
 
@@ -25,6 +44,608 @@ require("../../../node_modules/three/examples/js/postprocessing/EffectComposer")
 require("../../../node_modules/three/examples/js/postprocessing/RenderPass");
 require("../../../node_modules/three/examples/js/postprocessing/ShaderPass");
 // require("../../../node_modules/three/examples/js/postprocessing/OutlinePass");
+
+
+// var CAPS = {};
+//
+// CAPS.UNIFORMS = {
+//
+//     clipping: {
+//         color:        { type: "c",  value: new THREE.Color( 0x3d9ecb ) },
+//         clippingLow:  { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) },
+//         clippingHigh: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) }
+//     },
+//
+//     caps: {
+//         color: { type: "c", value: new THREE.Color( 0xf83610 ) }
+//     }
+//
+// };
+// CAPS.SHADER = {
+//
+//     vertex: '\
+// 		uniform vec3 color;\
+// 		varying vec3 pixelNormal;\
+// 		\
+// 		void main() {\
+// 			\
+// 			pixelNormal = normal;\
+// 			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\
+// 			\
+// 		}',
+//
+//     vertexClipping: '\
+// 		uniform vec3 color;\
+// 		uniform vec3 clippingLow;\
+// 		uniform vec3 clippingHigh;\
+// 		\
+// 		varying vec3 pixelNormal;\
+// 		varying vec4 worldPosition;\
+// 		varying vec3 camPosition;\
+// 		\
+// 		void main() {\
+// 			\
+// 			pixelNormal = normal;\
+// 			worldPosition = modelMatrix * vec4( position, 1.0 );\
+// 			camPosition = cameraPosition;\
+// 			\
+// 			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\
+// 			\
+// 		}',
+//
+//     fragment: '\
+// 		uniform vec3 color;\
+// 		varying vec3 pixelNormal;\
+// 		\
+// 		void main( void ) {\
+// 			\
+// 			float shade = (\
+// 				  3.0 * pow ( abs ( pixelNormal.y ), 2.0 )\
+// 				+ 2.0 * pow ( abs ( pixelNormal.z ), 2.0 )\
+// 				+ 1.0 * pow ( abs ( pixelNormal.x ), 2.0 )\
+// 			) / 3.0;\
+// 			\
+// 			gl_FragColor = vec4( color * shade, 1.0 );\
+// 			\
+// 		}',
+//
+//     fragmentClipping: '\
+// 		uniform vec3 color;\
+// 		uniform vec3 clippingLow;\
+// 		uniform vec3 clippingHigh;\
+// 		\
+// 		varying vec3 pixelNormal;\
+// 		varying vec4 worldPosition;\
+// 		\
+// 		void main( void ) {\
+// 			\
+// 			float shade = (\
+// 				  3.0 * pow ( abs ( pixelNormal.y ), 2.0 )\
+// 				+ 2.0 * pow ( abs ( pixelNormal.z ), 2.0 )\
+// 				+ 1.0 * pow ( abs ( pixelNormal.x ), 2.0 )\
+// 			) / 3.0;\
+// 			\
+// 			if (\
+// 				   worldPosition.x < clippingLow.x\
+// 				|| worldPosition.x > clippingHigh.x\
+// 				|| worldPosition.y < clippingLow.y\
+// 				|| worldPosition.y > clippingHigh.y\
+// 				|| worldPosition.z < clippingLow.z\
+// 				|| worldPosition.z > clippingHigh.z\
+// 			) {\
+// 				\
+// 				discard;\
+// 				\
+// 			} else {\
+// 				\
+// 				gl_FragColor = vec4( color * shade, 1.0 );\
+// 				\
+// 			}\
+// 			\
+// 		}',
+//
+//     fragmentClippingFront: '\
+// 		uniform vec3 color;\
+// 		uniform vec3 clippingLow;\
+// 		uniform vec3 clippingHigh;\
+// 		\
+// 		varying vec3 pixelNormal;\
+// 		varying vec4 worldPosition;\
+// 		varying vec3 camPosition;\
+// 		\
+// 		void main( void ) {\
+// 			\
+// 			float shade = (\
+// 				  3.0 * pow ( abs ( pixelNormal.y ), 2.0 )\
+// 				+ 2.0 * pow ( abs ( pixelNormal.z ), 2.0 )\
+// 				+ 1.0 * pow ( abs ( pixelNormal.x ), 2.0 )\
+// 			) / 3.0;\
+// 			\
+// 			if (\
+// 				   worldPosition.x < clippingLow.x  && camPosition.x < clippingLow.x\
+// 				|| worldPosition.x > clippingHigh.x && camPosition.x > clippingHigh.x\
+// 				|| worldPosition.y < clippingLow.y  && camPosition.y < clippingLow.y\
+// 				|| worldPosition.y > clippingHigh.y && camPosition.y > clippingHigh.y\
+// 				|| worldPosition.z < clippingLow.z  && camPosition.z < clippingLow.z\
+// 				|| worldPosition.z > clippingHigh.z && camPosition.z > clippingHigh.z\
+// 			) {\
+// 				\
+// 				discard;\
+// 				\
+// 			} else {\
+// 				\
+// 				gl_FragColor = vec4( color * shade, 1.0 );\
+// 				\
+// 			}\
+// 			\
+// 		}',
+//
+//     invisibleVertexShader: '\
+// 		void main() {\
+// 			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
+// 			gl_Position = projectionMatrix * mvPosition;\
+// 		}',
+//
+//     invisibleFragmentShader: '\
+// 		void main( void ) {\
+// 			gl_FragColor = vec4( 0.0, 0.0, 0.0, 1.0 );\
+// 			discard;\
+// 		}'
+//
+// };
+//
+// CAPS.MATERIAL = {
+//
+//     sheet: new THREE.ShaderMaterial( {
+//         uniforms:       CAPS.UNIFORMS.clipping,
+//         vertexShader:   CAPS.SHADER.vertexClipping,
+//         fragmentShader: CAPS.SHADER.fragmentClipping
+//     } ),
+//
+//     cap: new THREE.ShaderMaterial( {
+//         uniforms:       CAPS.UNIFORMS.caps,
+//         vertexShader:   CAPS.SHADER.vertex,
+//         fragmentShader: CAPS.SHADER.fragment
+//     } ),
+//
+//     backStencil: new THREE.ShaderMaterial( {
+//         uniforms:       CAPS.UNIFORMS.clipping,
+//         vertexShader:   CAPS.SHADER.vertexClipping,
+//         fragmentShader: CAPS.SHADER.fragmentClippingFront,
+//         colorWrite: false,
+//         depthWrite: false,
+//         side: THREE.BackSide
+//     } ),
+//
+//     frontStencil: new THREE.ShaderMaterial( {
+//         uniforms:       CAPS.UNIFORMS.clipping,
+//         vertexShader:   CAPS.SHADER.vertexClipping,
+//         fragmentShader: CAPS.SHADER.fragmentClippingFront,
+//         colorWrite: false,
+//         depthWrite: false,
+//     } ),
+//
+//     BoxBackFace:   new THREE.MeshBasicMaterial( { color: 0xEEDDCC, transparent: true } ),
+//     BoxWireframe:  new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } ),
+//     BoxWireActive: new THREE.LineBasicMaterial( { color: 0xf83610, linewidth: 4 } ),
+//
+//     Invisible: new THREE.ShaderMaterial( {
+//         vertexShader:   CAPS.SHADER.invisibleVertexShader,
+//         fragmentShader: CAPS.SHADER.invisibleFragmentShader
+//     } )
+//
+// };
+// CAPS.picking = function ( simulation ) {
+//
+//     var intersected = null;
+//     var mouse = new THREE.Vector2();
+//     var ray = new THREE.Raycaster();
+//
+//     var normals = {
+//         x1: new THREE.Vector3( -1,  0,  0 ),
+//         x2: new THREE.Vector3(  1,  0,  0 ),
+//         y1: new THREE.Vector3(  0, -1,  0 ),
+//         y2: new THREE.Vector3(  0,  1,  0 ),
+//         z1: new THREE.Vector3(  0,  0, -1 ),
+//         z2: new THREE.Vector3(  0,  0,  1 )
+//     };
+//
+//     var plane = new THREE.Mesh( new THREE.PlaneGeometry( 100, 100, 4, 4 ), CAPS.MATERIAL.Invisible );
+//     simulation.scene.add( plane );
+//
+//     var targeting = function ( event ) {
+//
+//         mouse.setToNormalizedDeviceCoordinates( event, window );
+//
+//         ray.setFromCamera( mouse, simulation.camera );
+//
+//         var intersects = ray.intersectObjects( simulation.selection.selectables );
+//
+//         if ( intersects.length > 0 ) {
+//
+//             var candidate = intersects[ 0 ].object;
+//
+//             if ( intersected !== candidate ) {
+//
+//                 if ( intersected !== null ) {
+//                     intersected.guardian.rayOut();
+//                 }
+//
+//                 candidate.guardian.rayOver();
+//
+//                 intersected = candidate;
+//
+//                 simulation.renderer.domElement.style.cursor = 'pointer';
+//                 simulation.throttledRender();
+//
+//             }
+//
+//         } else if ( intersected !== null ) {
+//
+//             intersected.guardian.rayOut();
+//             intersected = null;
+//
+//             simulation.renderer.domElement.style.cursor = 'auto';
+//             simulation.throttledRender();
+//
+//         }
+//
+//     };
+//
+//     var beginDrag = function ( event ) {
+//
+//         mouse.setToNormalizedDeviceCoordinates( event, window );
+//
+//         ray.setFromCamera( mouse, simulation.camera );
+//
+//         var intersects = ray.intersectObjects( simulation.selection.selectables );
+//
+//         if ( intersects.length > 0 ) {
+//
+//             event.preventDefault();
+//             event.stopPropagation();
+//
+//             simulation.controls.enabled = false;
+//
+//             var intersectionPoint = intersects[ 0 ].point;
+//
+//             var axis = intersects[ 0 ].object.axis;
+//
+//             if ( axis === 'x1' || axis === 'x2' ) {
+//                 intersectionPoint.setX( 0 );
+//             } else if ( axis === 'y1' || axis === 'y2' ) {
+//                 intersectionPoint.setY( 0 );
+//             } else if ( axis === 'z1' || axis === 'z2' ) {
+//                 intersectionPoint.setZ( 0 );
+//             }
+//             plane.position.copy( intersectionPoint );
+//
+//             var newNormal = simulation.camera.position.clone().sub(
+//                 simulation.camera.position.clone().projectOnVector( normals[ axis ] )
+//             );
+//             plane.lookAt( newNormal.add( intersectionPoint ) );
+//
+//             simulation.renderer.domElement.style.cursor = 'move';
+//             simulation.throttledRender();
+//
+//             var continueDrag = function ( event ) {
+//
+//                 event.preventDefault();
+//                 event.stopPropagation();
+//
+//                 mouse.setToNormalizedDeviceCoordinates( event, window );
+//
+//                 ray.setFromCamera( mouse, simulation.camera );
+//
+//                 var intersects = ray.intersectObject( plane );
+//
+//                 if ( intersects.length > 0 ) {
+//
+//                     if ( axis === 'x1' || axis === 'x2' ) {
+//                         value = intersects[ 0 ].point.x;
+//                     } else if ( axis === 'y1' || axis === 'y2' ) {
+//                         value = intersects[ 0 ].point.y;
+//                     } else if ( axis === 'z1' || axis === 'z2' ) {
+//                         value = intersects[ 0 ].point.z;
+//                     }
+//
+//                     simulation.selection.setValue( axis, value );
+//                     simulation.throttledRender();
+//
+//                 }
+//
+//             };
+//
+//             var endDrag = function ( event ) {
+//
+//                 simulation.controls.enabled = true;
+//
+//                 simulation.renderer.domElement.style.cursor = 'pointer';
+//
+//                 document.removeEventListener( 'mousemove',   continueDrag, true );
+//                 document.removeEventListener( 'touchmove',   continueDrag, true );
+//
+//                 document.removeEventListener( 'mouseup',     endDrag, false );
+//                 document.removeEventListener( 'touchend',    endDrag, false );
+//                 document.removeEventListener( 'touchcancel', endDrag, false );
+//                 document.removeEventListener( 'touchleave',  endDrag, false );
+//
+//             };
+//
+//             document.addEventListener( 'mousemove', continueDrag, true );
+//             document.addEventListener( 'touchmove', continueDrag, true );
+//
+//             document.addEventListener( 'mouseup',     endDrag, false );
+//             document.addEventListener( 'touchend',    endDrag, false );
+//             document.addEventListener( 'touchcancel', endDrag, false );
+//             document.addEventListener( 'touchleave',  endDrag, false );
+//
+//         }
+//
+//     };
+//
+//     simulation.renderer.domElement.addEventListener( 'mousemove',  targeting, true );
+//     simulation.renderer.domElement.addEventListener( 'mousedown',  beginDrag, false );
+//     simulation.renderer.domElement.addEventListener( 'touchstart', beginDrag, false );
+//
+// };
+// CAPS.PlaneGeometry = function ( v0, v1, v2, v3 ) {
+//
+//     THREE.Geometry.call( this );
+//
+//     this.vertices.push( v0, v1, v2, v3 );
+//     this.faces.push( new THREE.Face3( 0, 1, 2 ) );
+//     this.faces.push( new THREE.Face3( 0, 2, 3 ) );
+//
+//     this.computeFaceNormals();
+//     this.computeVertexNormals();
+//
+// };
+//
+// CAPS.PlaneGeometry.prototype = new THREE.Geometry();
+// CAPS.PlaneGeometry.prototype.constructor = CAPS.PlaneGeometry;
+// CAPS.SCHEDULE = {
+//
+//     postpone: function ( callback, context, wait ) {
+//
+//         return function () {
+//             setTimeout( function () {
+//                 callback.apply( context, arguments );
+//             }, wait );
+//         };
+//
+//     },
+//
+//     deferringThrottle: function ( callback, context, wait ) { // wait 60 = 16fps // wait 40 = 25fps // wait 20 = 50fps
+//
+//         var execute = function ( arguments ) {
+//             callback.apply( context, arguments );
+//             setTimeout( function () {
+//                 if ( deferredCalls ) {
+//                     deferredCalls = false;
+//                     execute( args );
+//                 } else {
+//                     blocked = false;
+//                 }
+//             }, wait );
+//         };
+//
+//         var blocked = false;
+//         var deferredCalls = false;
+//         var args = undefined;
+//
+//         return function () {
+//             if ( blocked ) {
+//                 args = arguments;
+//                 deferredCalls = true;
+//                 return;
+//             } else {
+//                 blocked = true;
+//                 deferredCalls = false;
+//                 execute( arguments );
+//             }
+//         };
+//
+//     }
+//
+// };
+// CAPS.Selection = function ( low, high ) {
+//
+//     this.limitLow = low;
+//     this.limitHigh = high;
+//
+//     this.box = new THREE.BoxGeometry( 1, 1, 1 );
+//     this.boxMesh = new THREE.Mesh( this.box, CAPS.MATERIAL.cap );
+//
+//     this.vertices = [
+//         new THREE.Vector3(), new THREE.Vector3(),
+//         new THREE.Vector3(), new THREE.Vector3(),
+//         new THREE.Vector3(), new THREE.Vector3(),
+//         new THREE.Vector3(), new THREE.Vector3()
+//     ];
+//     this.updateVertices();
+//
+//     var v = this.vertices;
+//
+//     this.touchMeshes = new THREE.Object3D();
+//     this.displayMeshes = new THREE.Object3D();
+//     this.meshGeometries = [];
+//     this.lineGeometries = [];
+//     this.selectables = [];
+//
+//     this.faces = [];
+//     var f = this.faces;
+//     this.faces.push( new CAPS.SelectionBoxFace( 'y1', v[ 0 ], v[ 1 ], v[ 5 ], v[ 4 ], this ) );
+//     this.faces.push( new CAPS.SelectionBoxFace( 'z1', v[ 0 ], v[ 2 ], v[ 3 ], v[ 1 ], this ) );
+//     this.faces.push( new CAPS.SelectionBoxFace( 'x1', v[ 0 ], v[ 4 ], v[ 6 ], v[ 2 ], this ) );
+//     this.faces.push( new CAPS.SelectionBoxFace( 'x2', v[ 7 ], v[ 5 ], v[ 1 ], v[ 3 ], this ) );
+//     this.faces.push( new CAPS.SelectionBoxFace( 'y2', v[ 7 ], v[ 3 ], v[ 2 ], v[ 6 ], this ) );
+//     this.faces.push( new CAPS.SelectionBoxFace( 'z2', v[ 7 ], v[ 6 ], v[ 4 ], v[ 5 ], this ) );
+//
+//     var l0  = new CAPS.SelectionBoxLine( v[ 0 ], v[ 1 ], f[ 0 ], f[ 1 ], this );
+//     var l1  = new CAPS.SelectionBoxLine( v[ 0 ], v[ 2 ], f[ 1 ], f[ 2 ], this );
+//     var l2  = new CAPS.SelectionBoxLine( v[ 0 ], v[ 4 ], f[ 0 ], f[ 2 ], this );
+//     var l3  = new CAPS.SelectionBoxLine( v[ 1 ], v[ 3 ], f[ 1 ], f[ 3 ], this );
+//     var l4  = new CAPS.SelectionBoxLine( v[ 1 ], v[ 5 ], f[ 0 ], f[ 3 ], this );
+//     var l5  = new CAPS.SelectionBoxLine( v[ 2 ], v[ 3 ], f[ 1 ], f[ 4 ], this );
+//     var l6  = new CAPS.SelectionBoxLine( v[ 2 ], v[ 6 ], f[ 2 ], f[ 4 ], this );
+//     var l7  = new CAPS.SelectionBoxLine( v[ 3 ], v[ 7 ], f[ 3 ], f[ 4 ], this );
+//     var l8  = new CAPS.SelectionBoxLine( v[ 4 ], v[ 5 ], f[ 0 ], f[ 5 ], this );
+//     var l9  = new CAPS.SelectionBoxLine( v[ 4 ], v[ 6 ], f[ 2 ], f[ 5 ], this );
+//     var l10 = new CAPS.SelectionBoxLine( v[ 5 ], v[ 7 ], f[ 3 ], f[ 5 ], this );
+//     var l11 = new CAPS.SelectionBoxLine( v[ 6 ], v[ 7 ], f[ 4 ], f[ 5 ], this );
+//
+//     this.setBox();
+//     this.setUniforms();
+//
+// };
+//
+// CAPS.Selection.prototype = {
+//
+//     constructor: CAPS.Selection,
+//
+//     updateVertices: function () {
+//
+//         this.vertices[ 0 ].set( this.limitLow.x,  this.limitLow.y,  this.limitLow.z );
+//         this.vertices[ 1 ].set( this.limitHigh.x, this.limitLow.y,  this.limitLow.z );
+//         this.vertices[ 2 ].set( this.limitLow.x,  this.limitHigh.y, this.limitLow.z );
+//         this.vertices[ 3 ].set( this.limitHigh.x, this.limitHigh.y, this.limitLow.z );
+//         this.vertices[ 4 ].set( this.limitLow.x,  this.limitLow.y,  this.limitHigh.z );
+//         this.vertices[ 5 ].set( this.limitHigh.x, this.limitLow.y,  this.limitHigh.z );
+//         this.vertices[ 6 ].set( this.limitLow.x,  this.limitHigh.y, this.limitHigh.z );
+//         this.vertices[ 7 ].set( this.limitHigh.x, this.limitHigh.y, this.limitHigh.z );
+//
+//     },
+//
+//     updateGeometries: function () {
+//
+//         for ( var i = 0; i < this.meshGeometries.length; i++ ) {
+//             this.meshGeometries[ i ].verticesNeedUpdate = true;
+//             this.meshGeometries[ i ].computeBoundingSphere();
+//             this.meshGeometries[ i ].computeBoundingBox();
+//         }
+//         for ( var i = 0; i < this.lineGeometries.length; i++ ) {
+//             this.lineGeometries[ i ].verticesNeedUpdate = true;
+//         }
+//
+//     },
+//
+//     setBox: function () {
+//
+//         var width = new THREE.Vector3();
+//         width.subVectors( this.limitHigh, this.limitLow );
+//
+//         this.boxMesh.scale.copy( width );
+//         width.multiplyScalar( 0.5 ).add( this.limitLow );
+//         this.boxMesh.position.copy( width );
+//
+//     },
+//
+//     setUniforms: function () {
+//
+//         var uniforms = CAPS.UNIFORMS.clipping;
+//         uniforms.clippingLow.value.copy(  this.limitLow );
+//         uniforms.clippingHigh.value.copy( this.limitHigh );
+//
+//     },
+//
+//     setValue: function ( axis, value ) {
+//
+//         var buffer = 0.4;
+//         var limit = 14;
+//
+//         if ( axis === 'x1' ) {
+//             this.limitLow.x = Math.max( -limit, Math.min( this.limitHigh.x-buffer, value ) );
+//         } else if ( axis === 'x2' ) {
+//             this.limitHigh.x = Math.max( this.limitLow.x+buffer, Math.min( limit, value ) );
+//         } else if ( axis === 'y1' ) {
+//             this.limitLow.y = Math.max( -limit, Math.min( this.limitHigh.y-buffer, value ) );
+//         } else if ( axis === 'y2' ) {
+//             this.limitHigh.y = Math.max( this.limitLow.y+buffer, Math.min( limit, value ) );
+//         } else if ( axis === 'z1' ) {
+//             this.limitLow.z = Math.max( -limit, Math.min( this.limitHigh.z-buffer, value ) );
+//         } else if ( axis === 'z2' ) {
+//             this.limitHigh.z = Math.max( this.limitLow.z+buffer, Math.min( limit, value ) );
+//         }
+//
+//         this.setBox();
+//         this.setUniforms();
+//
+//         this.updateVertices();
+//         this.updateGeometries();
+//
+//     }
+//
+// };
+// CAPS.SelectionBoxFace = function ( axis, v0, v1, v2, v3, selection ) {
+//
+//     var frontFaceGeometry = new CAPS.PlaneGeometry( v0, v1, v2, v3 );
+//     frontFaceGeometry.dynamic = true;
+//     selection.meshGeometries.push( frontFaceGeometry );
+//
+//     var frontFaceMesh = new THREE.Mesh( frontFaceGeometry, CAPS.MATERIAL.Invisible );
+//     frontFaceMesh.axis = axis;
+//     frontFaceMesh.guardian = this;
+//     selection.touchMeshes.add( frontFaceMesh );
+//     selection.selectables.push( frontFaceMesh );
+//
+//     var backFaceGeometry = new CAPS.PlaneGeometry( v3, v2, v1, v0 );
+//     backFaceGeometry.dynamic = true;
+//     selection.meshGeometries.push( backFaceGeometry );
+//
+//     var backFaceMesh = new THREE.Mesh( backFaceGeometry, CAPS.MATERIAL.BoxBackFace );
+//     selection.displayMeshes.add( backFaceMesh );
+//
+//     this.lines = new Array();
+//
+// };
+//
+// CAPS.SelectionBoxFace.prototype = {
+//
+//     constructor: CAPS.SelectionBoxFace,
+//
+//     rayOver: function () {
+//         this.highlightLines( true );
+//     },
+//
+//     rayOut: function () {
+//         this.highlightLines( false );
+//     },
+//
+//     highlightLines: function ( b ) {
+//         for ( var i = 0; i < this.lines.length; i++ ) {
+//             this.lines[ i ].setHighlight( b );
+//         }
+//     }
+//
+// };
+//
+// CAPS.SelectionBoxLine = function ( v0, v1, f0, f1, selection ) {
+//
+//     var lineGeometry = new THREE.Geometry();
+//     lineGeometry.vertices.push( v0, v1 );
+//     lineGeometry = new THREE.Line(lineGeometry).computeLineDistances();
+//     // lineGeometry.Line.computeLineDistances();
+//     lineGeometry.dynamic = true;
+//     selection.lineGeometries.push( lineGeometry );
+//
+//     this.line = new THREE.LineSegments( lineGeometry, CAPS.MATERIAL.BoxWireframe );
+//     selection.displayMeshes.add( this.line );
+//
+//     f0.lines.push( this );
+//     f1.lines.push( this );
+//
+// };
+//
+// CAPS.SelectionBoxLine.prototype = {
+//
+//     constructor: CAPS.SelectionBoxLine,
+//
+//     setHighlight: function ( b ) {
+//         this.line.material = b ? CAPS.MATERIAL.BoxWireActive : CAPS.MATERIAL.BoxWireframe;
+//     }
+//
+// };
 
 
 THREE.OutlinePass = function (resolution, scene, camera, selectedObjects) {
@@ -286,6 +907,7 @@ THREE.OutlinePass.prototype = Object.assign(Object.create(THREE.Pass.prototype),
         if (maskActive) renderer.context.disable(renderer.context.STENCIL_TEST);
 
         renderer.setClearColor(0xffffff, 1);
+
 
         // Make selected objects invisible
         this.changeVisibilityOfSelectedObjects(false);
@@ -788,6 +1410,21 @@ function GeomView(container, width, height) {
     me.selectedObjectName = [];
     me.scene = new THREE.Scene();
 
+
+    // this.capsScene    = undefined;
+    // this.backStencil  = undefined;
+    // this.frontStencil = undefined;
+
+    this.camera = undefined;
+    this.renderer = undefined;
+    this.controls = undefined;
+
+    // this.showCaps = true;
+    //
+    // var throttledRender = CAPS.SCHEDULE.deferringThrottle( this.render3D, this, 40 );
+    // this.throttledRender = throttledRender;
+
+
     // var canvas = document.getElementById("graphical_view");
     var canvas = document.createElement("canvas");
     canvas.width = window.innerWidth;
@@ -868,6 +1505,10 @@ function GeomView(container, width, height) {
         antialias: true,
         alpha: false
     });
+
+    // TEST clipping plane
+    // var globalPlane = new THREE.Plane( new THREE.Vector3( 1, 0, 0 ), 1 );
+
 
     me.renderer.gammaInput = true;
     me.renderer.gammaOutput = true;
@@ -1000,14 +1641,108 @@ function GeomView(container, width, height) {
      *
      */
 
+    // me.capsScene    = new THREE.Scene();
+    // me.backStencil  = new THREE.Scene();
+    // me.frontStencil = new THREE.Scene();
+
+    // me.selection = new CAPS.Selection(
+    //     new THREE.Vector3( -7, -14, -14 ),
+    //     new THREE.Vector3( 14,   9,   3 )
+    // );
+    // me.capsScene.add( me.selection.boxMesh );
+    // me.scene.add( me.selection.touchMeshes );
+    // me.scene.add( me.selection.displayMeshes );
+
     me.render3D = function () {
 
         const me = this;
+
+        me.renderer.localClippingEnabled = typeof me.renderer.localClippingEnabled === "boolean" ? me.renderer.localClippingEnabled : true;
+
+        if (me.renderer.localClippingEnabled) {
+
+
+            var normal = null;
+            me.renderer.clippingAxis = me.renderer.clippingAxis || "Ox";
+            if (me.renderer.clippingAxis === "Ox") {
+
+                normal = new THREE.Vector3(1, 0, 0);
+            }
+
+            if (me.renderer.clippingAxis === "Oy") {
+
+                normal = new THREE.Vector3(0, 1, 0);
+            }
+
+            if (me.renderer.clippingAxis === "Oz") {
+
+                normal = new THREE.Vector3(0, 0, 1);
+            }
+
+            me.renderer.clippingValue = me.renderer.clippingValue || 0;
+
+            var globalPlane = new THREE.Plane(normal, me.renderer.clippingValue);
+            var globalPlane2 = new THREE.Plane(normal, me.renderer.clippingValue + 2);
+            me.renderer.clippingPlanes = [globalPlane, globalPlane2];
+
+        } else {
+            me.renderer.clippingPlanes = [];
+        }
+
+        // this.selection = new CAPS.Selection(
+        //     new THREE.Vector3( -7, -14, -14 ),
+        //     new THREE.Vector3( 14,   9,   3 )
+        // );
+        //
+        // CAPS.picking( this ); // must come before OrbitControls, so it can cancel them
+        //
+        // // var showCapsInput = document.getElementById( 'showCaps' );
+        // // this.showCaps = showCapsInput.checked;
+        // this.showCaps = true;
+        // var onShowCaps = function () {
+        //     self.showCaps = showCapsInput.checked;
+        //     throttledRender();
+        // };
+        // // showCapsInput.addEventListener( 'change', onShowCaps, false );
+        //
+        //
+        // if ( this.showCaps ) {
+        //
+        //     var context = this.renderer.context;
+        //
+        //     context.enable(context.STENCIL_TEST);
+        //     // context.stencilFunc(context.ALWAYS, 0, 0xffffffff);
+        //     // context.stencilOp(context.REPLACE, context.REPLACE, context.REPLACE);
+        //     // context.clearStencil(0);
+        //     // context.clear(context.COLOR_BUFFER_BIT, context.DEPTH_BUFFER_BIT, context.STENCIL_BUFFER_BIT);
+        //
+        //
+        //     // this.renderer.state.setStencilTest( true );
+        //
+        //     context.stencilFunc( context.ALWAYS, 1, 0xff );
+        //     context.stencilOp( context.KEEP, context.KEEP, context.INCR );
+        //     this.renderer.render( this.backStencil, this.camera );
+        //
+        //     context.stencilFunc( context.ALWAYS, 1, 0xff );
+        //     context.stencilOp( context.KEEP, context.KEEP, context.DECR );
+        //     this.renderer.render(this.frontStencil, this.camera );
+        //
+        //     context.stencilFunc( context.EQUAL, 1, 0xff );
+        //     context.stencilOp( context.KEEP, context.KEEP, context.KEEP );
+        //     this.renderer.render( this.capsScene, this.camera );
+        //     context.disable(context.STENCIL_TEST);
+        //     // this.renderer.state.setStencilTest( false );
+        //
+        // }
+
+
         // renderbackground();
 
         me.scene.updateMatrixWorld();
 
+
         me.renderer.render(me.scene, me.camera);
+
 
     };
 
@@ -1287,7 +2022,6 @@ GeomView.prototype.__measurePointsNode = function (json) {
 };
 
 
-
 GeomView.prototype.selectObject = function (object) {
 
     const me = this;
@@ -1384,7 +2118,8 @@ GeomView.prototype.addSelectedObject = function (object) {
 
             selectedObjects.push(object.children[0].children[i]);
         }
-    };
+    }
+    ;
 
     me.scene.add(group);
     return selectedObjects;
@@ -1413,7 +2148,7 @@ function process_face_mesh(rootNode, jsonEntry, color) {
     const jsonFace = jsonEntry.mesh;
 
     jsonFace.scale = 1.0;
-    const jsonLoader = new THREE.JSONLoader();
+    const jsonLoader = new THREE.LegacyJSONLoader();
 
     const model = jsonLoader.parse(jsonFace, /* texturePath */ undefined);
 
