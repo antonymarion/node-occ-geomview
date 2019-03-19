@@ -1400,6 +1400,26 @@ let selectedObjects = [];
 // }
 
 
+function setObjectsToCut(me, objectIds, clippingPlanes) {
+    const self = me;
+
+    me.scene.getObjectByName("SOLIDS").children.forEach(geom => {
+        geom.children.forEach(c => c.children.forEach(cc => cc.material.clippingPlanes = []));
+    });
+
+    if (clippingPlanes.length !== 0) {
+        objectIds.forEach(objectId => {
+            self.scene.getObjectByName("SOLIDS").children.forEach(geom => {
+                if (!geom.getObjectByName("id_" + objectId)) {
+                    return;
+                }
+                geom.getObjectByName("id_" + objectId).children.forEach(c => c.material.clippingPlanes = clippingPlanes);
+            });
+        });
+    }
+
+}
+
 function GeomView(container, width, height) {
 
     width = width || container.offsetWidth;
@@ -1695,10 +1715,21 @@ function GeomView(container, width, height) {
             // var globalPlane2 = new THREE.Plane(normal, me.renderer.clippingValue + 2);
             // me.renderer.clippingPlanes = [globalPlane, globalPlane2];
             me.renderer.clipShadows = false;
-            me.renderer.clippingPlanes = [globalPlane];
+            if (me.selectedObjectsForCut.length === 0) {
+                me.renderer.clippingPlanes = [globalPlane];
+                if (me.cartoObjects) {
+                    setObjectsToCut(me, me.cartoObjects, []);
+                }
+            } else {
+                me.renderer.clippingPlanes = [];
+                setObjectsToCut(me, me.selectedObjectsForCut, [globalPlane]);
+            }
 
         } else {
             me.renderer.clippingPlanes = [];
+            if (me.cartoObjects) {
+                setObjectsToCut(me, me.cartoObjects, []);
+            }
         }
 
         // this.selection = new CAPS.Selection(
@@ -2408,5 +2439,4 @@ GeomView.prototype.onChangeView = function (viewName) {
 
 exports.GeomView = GeomView;
 exports.GeomTools = GeomTools;
-
 
