@@ -18,6 +18,13 @@
 let THREE = global.THREE;
 
 // Source: https://github.com/usco/glView-helpers/blob/master/src/grids/LabeledGrid.js
+//import THREE from 'three';
+
+
+/*TODO:
+ - refactor
+ - use label helper
+*/
 
 class LabeledGrid extends THREE.Object3D{
     constructor( width = 200, length = 200, step = 100, upVector = [0,1,0], color = 0x00baff, opacity = 0.2, text = true, textColor = "#000000", textLocation = "center") {
@@ -1818,6 +1825,17 @@ function GeomView(container, width, height) {
     height = height || container.offsetHeight;
 
     const me = this;
+
+    me.insetWidth = 150;
+    me.insetHeight = 150;
+
+    me.camera2 = new THREE.PerspectiveCamera(50, me.insetWidth / me.insetHeight, 1, 1000);
+    me.scene2 = new THREE.Scene();
+    me.renderer2 = new THREE.WebGLRenderer({alpha: true});
+    me.XAxisLabel = null;
+    me.YAxisLabel = null;
+    me.ZAxisLabel = null;
+
     me.container = container;
     me.selectedObjectName = [];
     me.scene = new THREE.Scene();
@@ -2173,9 +2191,22 @@ function GeomView(container, width, height) {
 
         // renderbackground();
 
+
+        if (!!me.ZAxisLabel){
+            me.XAxisLabel.lookAt(me.camera.position);
+            me.XAxisLabel.quaternion.copy( me.camera.quaternion );
+            me.YAxisLabel.lookAt(me.camera.position);
+            me.YAxisLabel.quaternion.copy( me.camera.quaternion );
+            me.ZAxisLabel.lookAt(me.camera.position);
+            me.ZAxisLabel.quaternion.copy( me.camera.quaternion );
+        }
+
         me.scene.updateMatrixWorld();
 
-
+        me.camera2.position.copy(me.camera.position);
+        me.camera2.position.setLength(300);
+        me.camera2.lookAt(me.scene2.position);
+        me.renderer2.render(me.scene2, me.camera2);
         me.renderer.render(me.scene, me.camera);
 
 
