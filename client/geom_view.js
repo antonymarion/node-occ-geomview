@@ -402,6 +402,8 @@ class LabeledGrid extends THREE.Object3D {
                 }
             }
         }
+        max = Math.max(Math.max(maxX, maxY), 10);
+        min = Math.min(Math.min(minX, minY), -10);
         size = (Math.max(max, Math.abs(min))) * 2;
         size = Math.ceil(size / 10) * 10;
         // if (size >= 200) {
