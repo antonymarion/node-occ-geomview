@@ -407,7 +407,7 @@ class LabeledGrid extends THREE.Object3D {
         size = (Math.max(max, Math.abs(min))) * 2;
         size = Math.ceil(size / 10) * 10;
         // if (size >= 200) {
-            return this.resize(size, size);
+        return this.resize(size, size);
         // }
     }
 
@@ -1958,6 +1958,7 @@ function GeomView(container, width, height) {
         me.controls = new THREE.OrthographicTrackballControls(me.camera, container);
     } else {
         me.controls = new THREE.TrackballControls(me.camera, container);
+        // me.controls = new THREE.OrbitControls(me.camera, container);
 
         me.controls.rotateSpeed = 1.0;
         me.controls.zoomSpeed = 1.2;
@@ -2171,14 +2172,20 @@ function GeomView(container, width, height) {
         // renderbackground();
 
 
+        // Always look camera for measurements && Axis inset
+
         if (!!me.ZAxisLabel) {
-            me.XAxisLabel.lookAt(me.camera.position);
             me.XAxisLabel.quaternion.copy(me.camera.quaternion);
-            me.YAxisLabel.lookAt(me.camera.position);
             me.YAxisLabel.quaternion.copy(me.camera.quaternion);
-            me.ZAxisLabel.lookAt(me.camera.position);
             me.ZAxisLabel.quaternion.copy(me.camera.quaternion);
         }
+
+        // if (me.mesaurementsMeshes) {
+        //     me.mesaurementsMeshes.forEach(mesh => {
+        //         mesh.quaternion.copy(me.camera.quaternion);
+        //     });
+        //
+        // }
 
         me.scene.updateMatrixWorld();
 
@@ -2230,10 +2237,26 @@ function GeomView(container, width, height) {
 
         me.composer.render();
 
+        if (!!me.facingCamera) {
+            me.facingCamera.check(me.camera);
+            if (!!me.facingCamera.bestFacingDir) {
+                if (!!me.dim0.extrude) {
+                    me.dim0.update(me.camera);
+                }
+                if (!!me.dim1.extrude) {
+                    me.dim1.update(me.camera);
+                }
+                if (!!me.dim2.extrude) {
+                    me.dim2.update(me.camera);
+                }
+            }
+        }
+
     }
 
-    MyAnimate();
 
+    MyAnimate();
+    me.MyAnimate = MyAnimate;
     me.render3D();
 
     function getOffsetLeft(element) {
