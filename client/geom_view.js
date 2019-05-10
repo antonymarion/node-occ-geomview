@@ -2490,6 +2490,18 @@ GeomView.prototype.__measurePointsNode = function (json) {
 };
 
 
+GeomView.prototype.__arrowHelperNode = function (json) {
+    const me = this;
+    let rootNode = me.scene.getObjectByName("ARROWHELPER");
+    if (!rootNode) {
+        rootNode = new THREE.Object3D();
+        rootNode.name = "ARROWHELPER";
+        me.scene.add(rootNode);
+    }
+    return rootNode;
+};
+
+
 GeomView.prototype.selectObject = function (object) {
 
     const me = this;
