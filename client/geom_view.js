@@ -2105,7 +2105,7 @@ function GeomView(container, width, height) {
             // var globalPlane2 = new THREE.Plane(normal, me.renderer.clippingValue + 2);
             // me.renderer.clippingPlanes = [globalPlane, globalPlane2];
             me.renderer.clipShadows = false;
-            if (me.selectedObjectsForCut.map(x=>x._id).indexOf("Tout")>-1) {
+            if (me.selectedObjectsForCut.indexOf("Tout") > -1) {
                 me.renderer.clippingPlanes = [globalPlane];
                 if (me.cartoObjects) {
                     setObjectsToCut(me, me.cartoObjects, []);
