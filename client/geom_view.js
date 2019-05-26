@@ -1781,6 +1781,11 @@ let selectedObjects = [];
 function setObjectsToCut(me, objectIds, clippingPlanes) {
     const self = me;
 
+    if (!me.scene.getObjectByName("SOLIDS")){
+        console.info("solids still loading or missing");
+        return ;
+    }
+
     me.scene.getObjectByName("SOLIDS").children.forEach(geom => {
         geom.children.forEach(c => c.children.forEach(cc => cc.material.clippingPlanes = []));
     });
