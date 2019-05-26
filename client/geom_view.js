@@ -1785,11 +1785,22 @@ function setObjectsToCut(me, objectIds, clippingPlanes) {
         console.info("solids still loading or missing");
         return ;
     }
+	
+    if (me.scene.getObjectByName("SOLIDS").children.length == 0) {
+        return;
+    }
+
 
     me.scene.getObjectByName("SOLIDS").children.forEach(geom => {
         geom.children.forEach(c => c.children.forEach(cc => cc.material.clippingPlanes = []));
+        geom.children.forEach(c => {
+            if (!c.material) {
+                return;
+            }
+            c.material.clippingPlanes = []
+        });
     });
-	
+
     if (clippingPlanes.length !== 0) {
         objectIds.forEach(objectId => {
             self.scene.getObjectByName("SOLIDS").children.forEach(geom => {
@@ -1806,7 +1817,6 @@ function setObjectsToCut(me, objectIds, clippingPlanes) {
             });
         });
     }
-
 
 }
 
