@@ -1793,13 +1793,16 @@ function setObjectsToCut(me, objectIds, clippingPlanes) {
     if (clippingPlanes.length !== 0) {
         objectIds.forEach(objectId => {
             self.scene.getObjectByName("SOLIDS").children.forEach(geom => {
-                if (!geom.getObjectByName("id_" + objectId)) {
+                const isUUID = objectId.toUpperCase() == objectId;
+                if (!isUUID && !geom.getObjectByName("id_" + objectId)) {
                     return;
                 }
-                geom.getObjectByName("id_" + objectId).children.forEach(c => c.material.clippingPlanes = clippingPlanes);
+                const searchedID = isUUID?geom.name:"id_" + objectId;
+                geom.getObjectByName(searchedID).children.forEach(c => c.material.clippingPlanes = clippingPlanes);
             });
         });
     }
+
 
 }
 
