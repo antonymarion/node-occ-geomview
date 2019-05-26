@@ -1789,7 +1789,7 @@ function setObjectsToCut(me, objectIds, clippingPlanes) {
     me.scene.getObjectByName("SOLIDS").children.forEach(geom => {
         geom.children.forEach(c => c.children.forEach(cc => cc.material.clippingPlanes = []));
     });
-
+	
     if (clippingPlanes.length !== 0) {
         objectIds.forEach(objectId => {
             self.scene.getObjectByName("SOLIDS").children.forEach(geom => {
@@ -1797,8 +1797,12 @@ function setObjectsToCut(me, objectIds, clippingPlanes) {
                 if (!isUUID && !geom.getObjectByName("id_" + objectId)) {
                     return;
                 }
-                const searchedID = isUUID?geom.name:"id_" + objectId;
-                geom.getObjectByName(searchedID).children.forEach(c => c.material.clippingPlanes = clippingPlanes);
+                const searchedID = isUUID ? objectId : "id_" + objectId;
+                const myGeom = isUUID ? geom.getObjectByProperty("uuid", searchedID) : geom.getObjectByName(searchedID);
+                if (!myGeom) {
+                    return;
+                }
+                myGeom.children.forEach(c => c.material.clippingPlanes = clippingPlanes)
             });
         });
     }
