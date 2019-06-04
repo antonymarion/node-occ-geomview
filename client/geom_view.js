@@ -2512,7 +2512,8 @@ GeomView.prototype.__measurePointsNode = function (json) {
 };
 
 
-GeomView.prototype.__arrowHelperNode = function (json) {
+
+GeomView.prototype.__arrowHelperNode = function (geomID) {
     const me = this;
     let rootNode = me.scene.getObjectByName("ARROWHELPER");
     if (!rootNode) {
@@ -2520,7 +2521,22 @@ GeomView.prototype.__arrowHelperNode = function (json) {
         rootNode.name = "ARROWHELPER";
         me.scene.add(rootNode);
     }
-    return rootNode;
+
+    if (!geomID) {
+        return rootNode;
+    }
+
+    const objName = "ARROWHELPER_" + geomID;
+    const objNode = rootNode.getChildByName(objName);
+    if (!!objNode) {
+        return objNode;
+    }
+    const obj =  new THREE.Object3D();
+    obj.name = objName;
+    rootNode.add(obj);
+    return obj;
+
+
 };
 
 
