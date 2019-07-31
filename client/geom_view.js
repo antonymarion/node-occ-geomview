@@ -1979,6 +1979,7 @@ GeomView.prototype.selectObject = function (object) {
         me.selectionAxis.matrixWorld = object.matrixWorld;
 
         if (me.selected.name !== "grid"
+	    && me.selected.name !== "KARTOBOX"
             && !(me.selected.parent instanceof THREE.TransformGizmoTranslate)
             && me.selected.type !== "Scene") {
             me.selectionBox.visible = true;
