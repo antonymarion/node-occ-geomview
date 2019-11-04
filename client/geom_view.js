@@ -2630,7 +2630,11 @@ function GeomView(container, width, height) {
         me.ray.set(me.camera.position, vector.sub(me.camera.position).normalize());
         let results = me.ray.intersectObjects([me.scene], true);
         results = results.filter(function (o) {
-            return findSelectedObject(o.object).visible;
+		let obj = findSelectedObject(o.object);
+		if (!obj){
+			return;
+		}
+            return obj.visible;
         });
         return results;
 
