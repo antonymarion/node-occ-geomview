@@ -3165,7 +3165,7 @@ GeomView.prototype.zoomObject = function (node) {
     const me = this;
 
     const bbox = me.getObjectBox(node);
-    if (bbox.isEmpty()) {
+    if (bbox.isEmpty()  || me.selected.constructor.name === "LabeledGrid") {
         return;
     }
     const COG = bbox.getCenter();
