@@ -16,6 +16,7 @@
  */
 
 const THREE = global.THREE;
+const LegacyJSONLoader = require("three-legacyjsonloader");
 // const CameraControls = global.CameraControls;
 const clock = new THREE.Clock();
 
@@ -1316,7 +1317,6 @@ THREE.Vector2.prototype.setToNormalizedDeviceCoordinates = function (event, wind
 
 };
 
-require("../../../node_modules/three/examples/js/loaders/deprecated/LegacyJSONLoader.js");
 require("../../../node_modules/three/examples/js/shaders/CopyShader");
 require("../../../node_modules/three/examples/js/shaders/FXAAShader");
 
@@ -2969,16 +2969,18 @@ function process_face_mesh(rootNode, jsonEntry, color) {
     const jsonFace = jsonEntry.mesh;
 
     jsonFace.scale = 1.0;
-    const jsonLoader = new THREE.LegacyJSONLoader();
+    const jsonLoader = new LegacyJSONLoader(THREE);
 
-    const model = jsonLoader.parse(jsonFace, /* texturePath */ undefined);
+    jsonLoader.parse(jsonFace, /* texturePath */ undefined).then(model=>{
+        const material = new THREE.MeshLambertMaterial({color: rgb2hex(color), side: THREE.DoubleSide});
+        const mesh = new THREE.Mesh(model.geometry, material);
+        mesh.properties = mesh.properties || {};
+        mesh.properties.OCCType = "face";
+        mesh.properties.OCCName = jsonFace.name;
+        rootNode.add(mesh);
+    });
 
-    const material = new THREE.MeshLambertMaterial({color: rgb2hex(color), side: THREE.DoubleSide});
-    const mesh = new THREE.Mesh(model.geometry, material);
-    mesh.properties = mesh.properties || {};
-    mesh.properties.OCCType = "face";
-    mesh.properties.OCCName = jsonFace.name;
-    rootNode.add(mesh);
+
 }
 
 function process_edge_mesh(rootNode, jsonEdge) {
