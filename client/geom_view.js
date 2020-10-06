@@ -17,7 +17,6 @@
 
 const THREE = global.THREE;
 const fs = require('fs');
-THREE = global.THREE
 const BufferGeometryUtils  = require('three/examples/jsm/utils/BufferGeometryUtils.js').BufferGeometryUtils;
 THREE.BufferGeometryUtils = BufferGeometryUtils;
 require('three/examples/js/exporters/GLTFExporter.js');
