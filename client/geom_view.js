@@ -15,9 +15,26 @@
 
  */
 
+/* global: THREE,assert */
+// GeomView.js
+
+// Author: {AMA,ER}
+// released under MIT license
+
+/*
+
+		<script src="js/shaders/CopyShader.js"></script>
+		<script src="js/shaders/FXAAShader.js"></script>
+		<script src="js/postprocessing/EffectComposer.js"></script>
+		<script src="js/postprocessing/RenderPass.js"></script>
+		<script src="js/postprocessing/ShaderPass.js"></script>
+		<script src="js/postprocessing/OutlinePass.js"></script>
+
+ */
+
 const THREE = global.THREE;
 const fs = require('fs');
-const BufferGeometryUtils  = require('three/examples/jsm/utils/BufferGeometryUtils.js').BufferGeometryUtils;
+const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils.js').BufferGeometryUtils;
 THREE.BufferGeometryUtils = BufferGeometryUtils;
 require('three/examples/js/exporters/GLTFExporter.js');
 
@@ -731,9 +748,9 @@ class LegacyJSONLoader {
                 // var exporter = new THREE.GLTFExporter();
                 // exporter.parse(mesh, (final_json) => {
 
-                    // END TODO
-                    // let parsedObj = this.ObjectLoader.parse(final_json);
-                    // resolve(parsedObj);
+                // END TODO
+                // let parsedObj = this.ObjectLoader.parse(final_json);
+                // resolve(parsedObj);
 
                 // });
 
@@ -745,6 +762,7 @@ class LegacyJSONLoader {
         return promise;
     }
 }
+
 // const CameraControls = global.CameraControls;
 const clock = new THREE.Clock();
 
@@ -1862,6 +1880,11 @@ class LabeledGrid extends THREE.Object3D {
         }
     }
 
+    updateFog(width, length) {
+        const fogDist = Math.max(width * 1.5, length * 1.5);
+        this.rootAssembly.fog = new THREE.Fog(0x222222, 10, fogDist * 10);
+    }
+
     _drawNumbering() {
 
         var label, sizeLabel, sizeLabel2, xLabelsLeft, xLabelsRight, yLabelsBack, yLabelsFront;
@@ -2017,9 +2040,10 @@ class LabeledGrid extends THREE.Object3D {
         min = Math.min(Math.min(minX, minY), -50);
         size = (Math.max(max, Math.abs(min))) * 2;
         size = Math.ceil(size / 10) * 10;
-        // if (size >= 200) {
+
+        // this.updateFog(size, size);
         return this.resize(size, size);
-        // }
+
     }
 
 
@@ -2785,6 +2809,26 @@ let selectedObjects = [];
 //     }
 // }
 
+function getTHREEJsObjectFromNodeOCCID(me, objectId) {
+    const self = me;
+    let returnedGeom = null;
+    self.scene.getObjectByName("SOLIDS").children.forEach(geom => {
+        if (!!returnedGeom) {
+            return;
+        }
+        const isUUID = objectId.toUpperCase() == objectId;
+        if (!isUUID && !geom.getObjectByName("id_" + objectId)) {
+            return;
+        }
+        const searchedID = isUUID ? objectId : "id_" + objectId;
+        const myGeom = isUUID ? geom.getObjectByProperty("uuid", searchedID) : geom.getObjectByName(searchedID);
+        if (!myGeom) {
+            return;
+        }
+        returnedGeom = myGeom;
+    });
+    return returnedGeom;
+}
 
 function setObjectsToCut(me, objectIds, clippingPlanes) {
     const self = me;
@@ -2811,17 +2855,59 @@ function setObjectsToCut(me, objectIds, clippingPlanes) {
 
     if (clippingPlanes.length !== 0) {
         objectIds.forEach(objectId => {
-            self.scene.getObjectByName("SOLIDS").children.forEach(geom => {
-                const isUUID = objectId.toUpperCase() == objectId;
-                if (!isUUID && !geom.getObjectByName("id_" + objectId)) {
+            const myGeom = getTHREEJsObjectFromNodeOCCID(me, objectId);
+            if (!myGeom) {
+                return;
+            }
+            myGeom.children.forEach(c => {
+                c.material.clippingPlanes = clippingPlanes;
+                if (c.material.clippingPlanes[0].equals(clippingPlanes[0])) {
                     return;
                 }
-                const searchedID = isUUID ? objectId : "id_" + objectId;
-                const myGeom = isUUID ? geom.getObjectByProperty("uuid", searchedID) : geom.getObjectByName(searchedID);
-                if (!myGeom) {
-                    return;
+                if (!!me.clippedColorFronts[myGeom.name]) {
+                    me.scene.remove(me.clippedColorFronts[myGeom.name]);
                 }
-                myGeom.children.forEach(c => c.material.clippingPlanes = clippingPlanes)
+                me.clippedColorFronts[myGeom.name] = new THREE.Mesh(c.geometry, c.material);
+                me.clippedColorFronts[myGeom.name].name = "clippedColorFront_" + myGeom.name;
+                myGeom.add(me.clippedColorFronts[myGeom.name]);
+
+
+                me.stencilGroups[myGeom.name] = new THREE.Group();
+                me.scene.add(me.stencilGroups[myGeom.name]);
+
+                var renderOrder = 0;
+                var planeGeom = new THREE.PlaneBufferGeometry(4, 4);
+                var stencilGroup = me.createPlaneStencilGroup(
+                    myGeom,
+                    objectInstance.name + "_" + myGeom.name,
+                    null,  // to be used if geometry exist inside clipped geometry
+                    me.renderer.clippingPlanes[0],
+                    renderOrder + 1 + idx // Render order
+                );
+                // plane is clipped by the other clipping planes
+                var planeMat = new THREE.MeshStandardMaterial({
+                    color: 0x66ff33,
+                    metalness: 0.1,
+                    roughness: 0.75,
+                    clippingPlanes: [],
+
+                    stencilWrite: true,
+                    stencilRef: 0,
+                    stencilFunc: THREE.NotEqualStencilFunc,
+                    stencilFail: THREE.ReplaceStencilOp,
+                    stencilZFail: THREE.ReplaceStencilOp,
+                    stencilZPass: THREE.ReplaceStencilOp,
+                });
+                var planeObject = new THREE.Mesh(planeGeom, planeMat);
+                planeObject.onAfterRender = function (renderer) {
+                    renderer.clearStencil();
+                };
+                planeObject.renderOrder = renderOrder + idx + 1.1;
+                object.add(stencilGroup);
+                console.log("added stencilGroup", stencilGroup.name);
+                me.scene.add(planeObject);
+
+
             });
         });
     }
@@ -2835,6 +2921,9 @@ function GeomView(container, width, height) {
     height = height || container.offsetHeight;
 
     const me = this;
+
+    me.clippedColorFronts = [];
+    me.stencilGroups = [];
 
     me.insetWidth = 150;
     me.insetHeight = 150;
@@ -2860,7 +2949,6 @@ function GeomView(container, width, height) {
     me.container = container;
     me.selectedObjectName = [];
     me.scene = new THREE.Scene();
-
 
     // this.capsScene    = undefined;
     // this.backStencil  = undefined;
@@ -3102,6 +3190,96 @@ function GeomView(container, width, height) {
     // me.scene.add( me.selection.touchMeshes );
     // me.scene.add( me.selection.displayMeshes );
 
+
+    me.deleteClippingPlaneHelperOBJ = function () {
+        var clippingPlaneHelperNode = me.__clippingPlaneHelperNode();
+        if (!myClippingPlaneHelperObj) {
+            clippingPlaneHelperNode.remove(me.clippingPlaneHelper);
+        }
+    };
+
+    me.showClippingPlane = function (globalPlane, isVisible) {
+        var clippingPlaneHelperNode = me.__clippingPlaneHelperNode();
+        var myClippingPlaneHelperObj = clippingPlaneHelperNode.getObjectByName("clippingPlaneHelper");
+        if (!myClippingPlaneHelperObj) {
+            me.clippingPlaneHelper = new THREE.PlaneHelper(globalPlane, me.grid.width, 0x0000ff);
+            me.clippingPlaneHelper.name = "clippingPlaneHelper";
+            clippingPlaneHelperNode.add(me.clippingPlaneHelper);
+        }
+        me.clippingPlaneHelper.size = 2 * me.grid.width;
+        var promptNoDisplay = me.renderer.clippingAxis === "Custom" || me.selectedObjectsForCut.indexOf("Tout") !== -1;
+        me.clippingPlaneHelper.visible = promptNoDisplay ? false : isVisible;
+    }
+
+    me.createPlaneStencilGroup = function (
+        geometry,
+        groupName,
+        geometryInner,
+        plane,
+        renderOrder
+    ) {
+        var group = new THREE.Group();
+        group.name = groupName;
+        var baseMat = new THREE.MeshBasicMaterial();
+        baseMat.depthWrite = false;
+        baseMat.depthTest = false;
+        baseMat.colorWrite = false;
+        baseMat.stencilWrite = true;
+        baseMat.stencilFunc = THREE.AlwaysStencilFunc;
+
+        // back faces
+        var mat0 = baseMat.clone();
+        mat0.side = THREE.BackSide;
+        mat0.clippingPlanes = [plane];
+        mat0.stencilFail = THREE.IncrementWrapStencilOp;
+        mat0.stencilZFail = THREE.IncrementWrapStencilOp;
+        mat0.stencilZPass = THREE.IncrementWrapStencilOp;
+        var mesh0 = new THREE.Mesh(geometry, mat0);
+        mesh0.renderOrder = renderOrder;
+        group.add(mesh0);
+
+        if (geometryInner) {
+            // back faces2
+            var mat01 = baseMat.clone();
+            mat01.side = THREE.BackSide;
+            mat01.clippingPlanes = [plane];
+            mat01.stencilFail = THREE.DecrementWrapStencilOp;
+            mat01.stencilZFail = THREE.DecrementWrapStencilOp;
+            mat01.stencilZPass = THREE.DecrementWrapStencilOp;
+            var mesh01 = new THREE.Mesh(geometryInner, mat01);
+            mesh01.renderOrder = renderOrder;
+            group.add(mesh01);
+        }
+
+        // front faces
+        var mat1 = baseMat.clone();
+        mat1.side = THREE.FrontSide;
+        mat1.clippingPlanes = [plane];
+        mat1.stencilFail = THREE.DecrementWrapStencilOp;
+        mat1.stencilZFail = THREE.DecrementWrapStencilOp;
+        mat1.stencilZPass = THREE.DecrementWrapStencilOp;
+        var mesh1 = new THREE.Mesh(geometry, mat1);
+        mesh1.renderOrder = renderOrder;
+        group.add(mesh1);
+
+        if (geometryInner) {
+            // front faces2
+            var mat12 = baseMat.clone();
+            mat12.side = THREE.FrontSide;
+            mat12.clippingPlanes = [plane];
+            mat12.stencilFail = THREE.IncrementWrapStencilOp;
+            mat12.stencilZFail = THREE.IncrementWrapStencilOp;
+            mat12.stencilZPass = THREE.IncrementWrapStencilOp;
+
+            var mesh12 = new THREE.Mesh(geometryInner, mat12);
+            mesh12.renderOrder = renderOrder;
+
+            group.add(mesh12);
+        }
+
+        return group;
+    }
+
     me.render3D = function () {
 
         const me = this;
@@ -3115,47 +3293,59 @@ function GeomView(container, width, height) {
 
 
             var normal = null;
+
+            //init.
             me.renderer.clippingAxis = me.renderer.clippingAxis || "Ox";
+            me.renderer.invertedClipping = me.renderer.invertedClipping || false;
+            me.renderer.clippingPlaneHelper = me.renderer.clippingPlaneHelper || false;
+
             if (me.renderer.clippingAxis === "Ox") {
 
-                normal = new THREE.Vector3(1, 0, 0);
+                normal = !me.renderer.invertedClipping ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(-1, 0, 0);
             }
 
             if (me.renderer.clippingAxis === "Oy") {
 
-                normal = new THREE.Vector3(0, 1, 0);
+                normal = !me.renderer.invertedClipping ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(0, -1, 0);
             }
 
             if (me.renderer.clippingAxis === "Oz") {
 
-                normal = new THREE.Vector3(0, 0, 1);
+                normal = !me.renderer.invertedClipping ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 0, -1);
 
             }
 
             if (me.renderer.clippingAxis === "Custom") {
 
-                normal = new THREE.Vector3(me.renderer.xValue, me.renderer.yValue, me.renderer.zValue);
+                normal = !me.renderer.invertedClipping ?
+                    new THREE.Vector3(me.renderer.xValue, me.renderer.yValue, me.renderer.zValue)
+                    :
+                    new THREE.Vector3(-me.renderer.xValue, -me.renderer.yValue, -me.renderer.zValue);
 
             }
 
             me.renderer.clippingValue = me.renderer.clippingValue || 0;
+            var theClippingValue = !me.renderer.invertedClipping ? me.renderer.clippingValue : -me.renderer.clippingValue;
+            me.globalPlane = !!me.globalPlane ? me.globalPlane.set(normal, theClippingValue) : new THREE.Plane(normal, theClippingValue);
 
-            var globalPlane = new THREE.Plane(normal, me.renderer.clippingValue);
-            // var globalPlane2 = new THREE.Plane(normal, me.renderer.clippingValue + 2);
-            // me.renderer.clippingPlanes = [globalPlane, globalPlane2];
             me.renderer.clipShadows = false;
             if (me.selectedObjectsForCut.indexOf("Tout") > -1) {
-                me.renderer.clippingPlanes = [globalPlane];
+
+                me.renderer.clippingPlanes = [me.globalPlane];
+                me.showClippingPlane(me.globalPlane, me.renderer.clippingPlaneHelper || false);
                 if (me.cartoObjects) {
                     setObjectsToCut(me, me.cartoObjects, []);
                 }
+
             } else {
                 me.renderer.clippingPlanes = [];
-                setObjectsToCut(me, me.selectedObjectsForCut, [globalPlane]);
+                me.showClippingPlane(me.globalPlane, me.renderer.clippingPlaneHelper || false);
+                setObjectsToCut(me, me.selectedObjectsForCut, [me.globalPlane]);
             }
 
         } else {
             me.renderer.clippingPlanes = [];
+            !!me.globalPlane ? deleteClippingPlaneHelperOBJ() : null;
             if (me.cartoObjects) {
                 setObjectsToCut(me, me.cartoObjects, []);
             }
@@ -3536,6 +3726,17 @@ GeomView.prototype.__measurePointsNode = function (json) {
 };
 
 
+GeomView.prototype.__clippingPlaneHelperNode = function (geomID) {
+    const me = this;
+    let rootNode = me.scene.getObjectByName("CLIPPINGPLANEHELPER");
+    if (!rootNode) {
+        rootNode = new THREE.Object3D();
+        rootNode.name = "CLIPPINGPLANEHELPER";
+        me.scene.add(rootNode);
+    }
+    return rootNode;
+};
+
 GeomView.prototype.__arrowHelperNode = function (geomID) {
     const me = this;
     let rootNode = me.scene.getObjectByName("ARROWHELPER");
@@ -3699,13 +3900,15 @@ function process_face_mesh(rootNode, jsonEntry, color) {
     jsonFace.scale = 1.0;
     const jsonLoader = new LegacyJSONLoader(THREE);
 
-    jsonLoader.parse(jsonFace, /* texturePath */ undefined).then(model=>{
-        const material = new THREE.MeshLambertMaterial({color: rgb2hex(color), side: THREE.DoubleSide});
+    jsonLoader.parse(jsonFace, /* texturePath */ undefined).then(model => {
+        const material = new THREE.MeshBasicMaterial({color: rgb2hex(color), side: THREE.BackSide});
         const mesh = new THREE.Mesh(model.geometry, material);
         mesh.properties = mesh.properties || {};
         mesh.properties.OCCType = "face";
         mesh.properties.OCCName = jsonFace.name;
         rootNode.add(mesh);
+    }).catch(err => {
+        console.error(err);
     });
 
 
