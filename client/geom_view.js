@@ -15,23 +15,6 @@
 
  */
 
-/* global: THREE,assert */
-// GeomView.js
-
-// Author: {AMA,ER}
-// released under MIT license
-
-/*
-
-		<script src="js/shaders/CopyShader.js"></script>
-		<script src="js/shaders/FXAAShader.js"></script>
-		<script src="js/postprocessing/EffectComposer.js"></script>
-		<script src="js/postprocessing/RenderPass.js"></script>
-		<script src="js/postprocessing/ShaderPass.js"></script>
-		<script src="js/postprocessing/OutlinePass.js"></script>
-
- */
-
 const THREE = global.THREE;
 const fs = require('fs');
 const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils.js').BufferGeometryUtils;
@@ -427,145 +410,6 @@ THREE.LegacyJSONLoader_old = (function () {
 
             }
 
-            function parseSkin(json, geometry) {
-
-                var influencesPerVertex = (json.influencesPerVertex !== undefined) ? json.influencesPerVertex : 2;
-
-                if (json.skinWeights) {
-
-                    for (var i = 0, l = json.skinWeights.length; i < l; i += influencesPerVertex) {
-
-                        var x = json.skinWeights[i];
-                        var y = (influencesPerVertex > 1) ? json.skinWeights[i + 1] : 0;
-                        var z = (influencesPerVertex > 2) ? json.skinWeights[i + 2] : 0;
-                        var w = (influencesPerVertex > 3) ? json.skinWeights[i + 3] : 0;
-
-                        geometry.skinWeights.push(new THREE.Vector4(x, y, z, w));
-
-                    }
-
-                }
-
-                if (json.skinIndices) {
-
-                    for (var i = 0, l = json.skinIndices.length; i < l; i += influencesPerVertex) {
-
-                        var a = json.skinIndices[i];
-                        var b = (influencesPerVertex > 1) ? json.skinIndices[i + 1] : 0;
-                        var c = (influencesPerVertex > 2) ? json.skinIndices[i + 2] : 0;
-                        var d = (influencesPerVertex > 3) ? json.skinIndices[i + 3] : 0;
-
-                        geometry.skinIndices.push(new THREE.Vector4(a, b, c, d));
-
-                    }
-
-                }
-
-                geometry.bones = json.bones;
-
-                if (geometry.bones && geometry.bones.length > 0 && (geometry.skinWeights.length !== geometry.skinIndices.length || geometry.skinIndices.length !== geometry.vertices.length)) {
-
-                    console.warn('When skinning, number of vertices (' + geometry.vertices.length + '), skinIndices (' +
-                        geometry.skinIndices.length + '), and skinWeights (' + geometry.skinWeights.length + ') should match.');
-
-                }
-
-            }
-
-            function parseMorphing(json, geometry) {
-
-                var scale = json.scale;
-
-                if (json.morphTargets !== undefined) {
-
-                    for (var i = 0, l = json.morphTargets.length; i < l; i++) {
-
-                        geometry.morphTargets[i] = {};
-                        geometry.morphTargets[i].name = json.morphTargets[i].name;
-                        geometry.morphTargets[i].vertices = [];
-
-                        var dstVertices = geometry.morphTargets[i].vertices;
-                        var srcVertices = json.morphTargets[i].vertices;
-
-                        for (var v = 0, vl = srcVertices.length; v < vl; v += 3) {
-
-                            var vertex = new THREE.Vector3();
-                            vertex.x = srcVertices[v] * scale;
-                            vertex.y = srcVertices[v + 1] * scale;
-                            vertex.z = srcVertices[v + 2] * scale;
-
-                            dstVertices.push(vertex);
-
-                        }
-
-                    }
-
-                }
-
-                if (json.morphColors !== undefined && json.morphColors.length > 0) {
-
-                    console.warn('THREE.JSONLoader: "morphColors" no longer supported. Using them as face colors.');
-
-                    var faces = geometry.faces;
-                    var morphColors = json.morphColors[0].colors;
-
-                    for (var i = 0, l = faces.length; i < l; i++) {
-
-                        faces[i].color.fromArray(morphColors, i * 3);
-
-                    }
-
-                }
-
-            }
-
-            function parseAnimations(json, geometry) {
-
-                var outputAnimations = [];
-
-                // parse old style Bone/Hierarchy animations
-                var animations = [];
-
-                if (json.animation !== undefined) {
-
-                    animations.push(json.animation);
-
-                }
-
-                if (json.animations !== undefined) {
-
-                    if (json.animations.length) {
-
-                        animations = animations.concat(json.animations);
-
-                    } else {
-
-                        animations.push(json.animations);
-
-                    }
-
-                }
-
-                for (var i = 0; i < animations.length; i++) {
-
-                    var clip = THREE.AnimationClip.parseAnimation(animations[i], geometry.bones);
-                    if (clip) outputAnimations.push(clip);
-
-                }
-
-                // parse implicit morph animations
-                if (geometry.morphTargets) {
-
-                    // TODO: Figure out what an appropraite FPS is for morph target animations -- defaulting to 10, but really it is completely arbitrary.
-                    var morphAnimationClips = THREE.AnimationClip.CreateClipsFromMorphTargetSequences(geometry.morphTargets, 10);
-                    outputAnimations = outputAnimations.concat(morphAnimationClips);
-
-                }
-
-                if (outputAnimations.length > 0) geometry.animations = outputAnimations;
-
-            }
-
             return function parse(json, path) {
 
                 if (json.data !== undefined) {
@@ -588,28 +432,10 @@ THREE.LegacyJSONLoader_old = (function () {
                 var geometry = new THREE.Geometry();
 
                 parseModel(json, geometry);
-                parseSkin(json, geometry);
-                parseMorphing(json, geometry);
-                parseAnimations(json, geometry);
-
                 geometry.computeFaceNormals();
                 geometry.computeBoundingSphere();
+                return {geometry: geometry};
 
-                if (json.materials === undefined || json.materials.length === 0) {
-
-                    return {geometry: geometry};
-
-                } else {
-
-                    // TODO
-                    // var materials = THREE.Loader.prototype.initMaterials( json.materials, this.resourcePath || path, this.crossOrigin );
-                    var materials = [];
-                    for (var i = 0; i < geometry.length; i++) {
-                        materials.push(new THREE.MeshBasicMaterial({color: 0x00ff00}));
-                    }
-                    return {geometry: geometry, materials: materials};
-
-                }
 
             };
 
@@ -620,59 +446,6 @@ THREE.LegacyJSONLoader_old = (function () {
     return LegacyJSONLoader_old;
 
 })();
-
-/** Previously SkinnedMesh.initBones(). */
-function initBones(boneDefs) {
-
-    var bones = [], bone, gbone;
-    var i, il;
-
-    // first, create array of 'Bone' objects from geometry data
-
-    for (i = 0, il = boneDefs.length; i < il; i++) {
-
-        gbone = boneDefs[i];
-
-        // create new 'Bone' object
-
-        bone = new THREE.Bone();
-        bones.push(bone);
-
-        // apply values
-
-        bone.name = gbone.name;
-        bone.position.fromArray(gbone.pos);
-        bone.quaternion.fromArray(gbone.rotq);
-        if (gbone.scl !== undefined) bone.scale.fromArray(gbone.scl);
-
-    }
-
-    // second, create bone hierarchy
-    var roots = [];
-
-    for (i = 0, il = boneDefs.length; i < il; i++) {
-
-        gbone = boneDefs[i];
-
-        if ((gbone.parent !== -1) && (gbone.parent !== null) && (bones[gbone.parent] !== undefined)) {
-
-            // subsequent bones in the hierarchy
-
-            bones[gbone.parent].add(bones[i]);
-
-        } else {
-
-            // topmost bone, immediate child of the skinned mesh
-
-            roots.push(bones[i]);
-
-        }
-
-    }
-
-    return {roots, bones};
-
-}
 
 class LegacyJSONLoader {
     constructor(THREE) {
@@ -729,20 +502,7 @@ class LegacyJSONLoader {
 
                 }
 
-                if (boneDefs.length) {
-
-                    var {roots, bones} = initBones(boneDefs);
-                    mesh = new THREE.SkinnedMesh(geometry, materials);
-                    roots.forEach((bone) => mesh.add(bone));
-                    mesh.updateMatrixWorld(true);
-                    mesh.bind(new THREE.Skeleton(bones), mesh.matrixWorld);
-                    mesh.normalizeSkinWeights();
-
-                } else {
-
-                    mesh = new THREE.Mesh(geometry, materials);
-
-                }
+                mesh = new THREE.Mesh(geometry, materials);
 
                 resolve(mesh);
                 // var exporter = new THREE.GLTFExporter();
@@ -2844,11 +2604,25 @@ function setObjectsToCut(me, objectIds, clippingPlanes) {
 
 
     me.scene.getObjectByName("SOLIDS").children.forEach(geom => {
-        geom.children.forEach(c => c.children.forEach(cc => cc.material.clippingPlanes = []));
+        geom.children.forEach(c => c.children.forEach(cc => {
+            // if (cc.material.constructor.name === "MeshBasicMaterial") {
+            //     cc.material = new THREE.MeshLambertMaterial({
+            //         color: cc.material.color,
+            //         side: THREE.DoubleSide
+            //     });
+            // }
+            cc.material.clippingPlanes = []
+        }));
         geom.children.forEach(c => {
             if (!c.material) {
                 return;
             }
+            // if (c.material.constructor.name === "MeshBasicMaterial") {
+            //     c.material = new THREE.MeshLambertMaterial({
+            //         color: c.material.color,
+            //         side: THREE.DoubleSide
+            //     });
+            // }
             c.material.clippingPlanes = []
         });
     });
@@ -2859,54 +2633,81 @@ function setObjectsToCut(me, objectIds, clippingPlanes) {
             if (!myGeom) {
                 return;
             }
+
+            if (!!myGeom.material) {
+                // myGeom.material = new THREE.MeshBasicMaterial({
+                //     color: myGeom.material.color,
+                //     side: THREE.DoubleSide,
+                //     depthTest: true,
+                //     fog: false,
+                //     precision: "highp",
+                //     polygonOffset: true,
+                //     polygonOffsetFactor: -4
+                // });
+                myGeom.material.clippingPlanes = clippingPlanes;
+            }
+
             myGeom.children.forEach(c => {
+                // c.material = new THREE.MeshBasicMaterial({
+                //     color: c.material.color,
+                //     side: THREE.DoubleSide,
+                //     depthTest: true,
+                //     fog: false,
+                //     precision: "highp",
+                //     polygonOffset: true,
+                //     polygonOffsetFactor: -4
+                // });
                 c.material.clippingPlanes = clippingPlanes;
-                if (c.material.clippingPlanes[0].equals(clippingPlanes[0])) {
-                    return;
-                }
-                if (!!me.clippedColorFronts[myGeom.name]) {
-                    me.scene.remove(me.clippedColorFronts[myGeom.name]);
-                }
-                me.clippedColorFronts[myGeom.name] = new THREE.Mesh(c.geometry, c.material);
-                me.clippedColorFronts[myGeom.name].name = "clippedColorFront_" + myGeom.name;
-                myGeom.add(me.clippedColorFronts[myGeom.name]);
 
 
-                me.stencilGroups[myGeom.name] = new THREE.Group();
-                me.scene.add(me.stencilGroups[myGeom.name]);
+                // stencil replaced by MeshBasicMaterial for clipped geoms
+                // if (!!myGeom.children[0].clippingPlanes && myGeom.children[0].clippingPlanes[0].equals(clippingPlanes[0])) {
+                //     return;
+                // }
 
-                var renderOrder = 0;
-                var planeGeom = new THREE.PlaneBufferGeometry(4, 4);
-                var stencilGroup = me.createPlaneStencilGroup(
-                    myGeom,
-                    objectInstance.name + "_" + myGeom.name,
-                    null,  // to be used if geometry exist inside clipped geometry
-                    me.renderer.clippingPlanes[0],
-                    renderOrder + 1 + idx // Render order
-                );
-                // plane is clipped by the other clipping planes
-                var planeMat = new THREE.MeshStandardMaterial({
-                    color: 0x66ff33,
-                    metalness: 0.1,
-                    roughness: 0.75,
-                    clippingPlanes: [],
-
-                    stencilWrite: true,
-                    stencilRef: 0,
-                    stencilFunc: THREE.NotEqualStencilFunc,
-                    stencilFail: THREE.ReplaceStencilOp,
-                    stencilZFail: THREE.ReplaceStencilOp,
-                    stencilZPass: THREE.ReplaceStencilOp,
-                });
-                var planeObject = new THREE.Mesh(planeGeom, planeMat);
-                planeObject.onAfterRender = function (renderer) {
-                    renderer.clearStencil();
-                };
-                planeObject.renderOrder = renderOrder + idx + 1.1;
-                object.add(stencilGroup);
-                console.log("added stencilGroup", stencilGroup.name);
-                me.scene.add(planeObject);
-
+                // if (!!me.clippedColorFronts[myGeom.name]) {
+                //     me.scene.remove(me.clippedColorFronts[myGeom.name]);
+                // }
+                //
+                // me.stencilGroups[myGeom.name] = new THREE.Group();
+                // me.scene.add(me.stencilGroups[myGeom.name]);
+                //
+                // var renderOrder = 0;
+                // var planeGeom = new THREE.PlaneBufferGeometry(4, 4);
+                // var stencilGroup = me.createPlaneStencilGroup(
+                //     myGeom,
+                //     objectInstance.name + "_" + myGeom.name,
+                //     null,  // to be used if geometry exist inside clipped geometry
+                //     me.renderer.clippingPlanes[0],
+                //     renderOrder + 1 + idx // Render order
+                // );
+                // // plane is clipped by the other clipping planes
+                // var planeMat = new THREE.MeshStandardMaterial({
+                //     color: 0x66ff33,
+                //     metalness: 0.1,
+                //     roughness: 0.75,
+                //     clippingPlanes: [],
+                //
+                //     stencilWrite: true,
+                //     stencilRef: 0,
+                //     stencilFunc: THREE.NotEqualStencilFunc,
+                //     stencilFail: THREE.ReplaceStencilOp,
+                //     stencilZFail: THREE.ReplaceStencilOp,
+                //     stencilZPass: THREE.ReplaceStencilOp,
+                // });
+                // me.planeObjects[myGeom.name] = new THREE.Mesh(planeGeom, planeMat);
+                // me.planeObjects[myGeom.name].onAfterRender = function (renderer) {
+                //     renderer.clearStencil();
+                // };
+                // me.planeObjects[myGeom.name].renderOrder = renderOrder + idx + 1.1;
+                // me.stencilGroups[myGeom.name].add(stencilGroup);
+                // me.scene.add(me.planeObjects[myGeom.name]);
+                //
+                // me.clippedColorFronts[myGeom.name] = new THREE.Mesh(c.geometry, c.material);
+                // me.clippedColorFronts[myGeom.name].name = "clippedColorFront_" + myGeom.name;
+                // me.clippedColorFronts[myGeom.name].castShadow = false;
+                // me.clippedColorFronts[myGeom.name].renderOrder = 6;
+                // me.stencilGroups[myGeom.name].add(me.clippedColorFronts[myGeom.name]);
 
             });
         });
@@ -2922,8 +2723,9 @@ function GeomView(container, width, height) {
 
     const me = this;
 
-    me.clippedColorFronts = [];
-    me.stencilGroups = [];
+    // me.clippedColorFronts = {};
+    // me.stencilGroups = {};
+    // me.planeObjects = {};
 
     me.insetWidth = 150;
     me.insetHeight = 150;
@@ -2970,10 +2772,12 @@ function GeomView(container, width, height) {
     const ratio = width / height;
 
     if (use_CombinedCamera) {
+        // me.camera = new THREE.CombinedCamera(width, height, 35, 10, 100, -500, 1000);
         me.camera = new THREE.CombinedCamera(width, height, 35, 1, 10000, -500, 1000);
         //  width, height, fov, near, far, orthoNear, orthoFar
         me.camera.toOrthographic();
     } else {
+        // me.camera = new THREE.PerspectiveCamera(35, ratio, 10, 1000); // fov, aspect, near, far
         me.camera = new THREE.PerspectiveCamera(35, ratio, 1, 100000); // fov, aspect, near, far
 
         me.camera.toXXXView = function (dirView, up) {
@@ -3023,6 +2827,7 @@ function GeomView(container, width, height) {
 
     me.renderer = new THREE.WebGLRenderer({
         preserveDrawingBuffer: true,
+        logarithmicDepthBuffer: true,
         antialias: true,
         alpha: false,
         canvas: me.canvas,
@@ -3198,6 +3003,12 @@ function GeomView(container, width, height) {
         }
     };
 
+    // me.flushGeomViewStencilObjs = function () {
+    //     Object.keys(this.clippedColorFronts.length > 0) ? this.clippedColorFronts = {} : null;
+    //     Object.keys(this.planeObjects.length > 0) ? this.planeObjects = {} : null;
+    //     Object.keys(this.stencilGroups.length > 0) ? this.stencilGroups = {} : null;
+    // }
+
     me.showClippingPlane = function (globalPlane, isVisible) {
         var clippingPlaneHelperNode = me.__clippingPlaneHelperNode();
         var myClippingPlaneHelperObj = clippingPlaneHelperNode.getObjectByName("clippingPlaneHelper");
@@ -3211,74 +3022,74 @@ function GeomView(container, width, height) {
         me.clippingPlaneHelper.visible = promptNoDisplay ? false : isVisible;
     }
 
-    me.createPlaneStencilGroup = function (
-        geometry,
-        groupName,
-        geometryInner,
-        plane,
-        renderOrder
-    ) {
-        var group = new THREE.Group();
-        group.name = groupName;
-        var baseMat = new THREE.MeshBasicMaterial();
-        baseMat.depthWrite = false;
-        baseMat.depthTest = false;
-        baseMat.colorWrite = false;
-        baseMat.stencilWrite = true;
-        baseMat.stencilFunc = THREE.AlwaysStencilFunc;
-
-        // back faces
-        var mat0 = baseMat.clone();
-        mat0.side = THREE.BackSide;
-        mat0.clippingPlanes = [plane];
-        mat0.stencilFail = THREE.IncrementWrapStencilOp;
-        mat0.stencilZFail = THREE.IncrementWrapStencilOp;
-        mat0.stencilZPass = THREE.IncrementWrapStencilOp;
-        var mesh0 = new THREE.Mesh(geometry, mat0);
-        mesh0.renderOrder = renderOrder;
-        group.add(mesh0);
-
-        if (geometryInner) {
-            // back faces2
-            var mat01 = baseMat.clone();
-            mat01.side = THREE.BackSide;
-            mat01.clippingPlanes = [plane];
-            mat01.stencilFail = THREE.DecrementWrapStencilOp;
-            mat01.stencilZFail = THREE.DecrementWrapStencilOp;
-            mat01.stencilZPass = THREE.DecrementWrapStencilOp;
-            var mesh01 = new THREE.Mesh(geometryInner, mat01);
-            mesh01.renderOrder = renderOrder;
-            group.add(mesh01);
-        }
-
-        // front faces
-        var mat1 = baseMat.clone();
-        mat1.side = THREE.FrontSide;
-        mat1.clippingPlanes = [plane];
-        mat1.stencilFail = THREE.DecrementWrapStencilOp;
-        mat1.stencilZFail = THREE.DecrementWrapStencilOp;
-        mat1.stencilZPass = THREE.DecrementWrapStencilOp;
-        var mesh1 = new THREE.Mesh(geometry, mat1);
-        mesh1.renderOrder = renderOrder;
-        group.add(mesh1);
-
-        if (geometryInner) {
-            // front faces2
-            var mat12 = baseMat.clone();
-            mat12.side = THREE.FrontSide;
-            mat12.clippingPlanes = [plane];
-            mat12.stencilFail = THREE.IncrementWrapStencilOp;
-            mat12.stencilZFail = THREE.IncrementWrapStencilOp;
-            mat12.stencilZPass = THREE.IncrementWrapStencilOp;
-
-            var mesh12 = new THREE.Mesh(geometryInner, mat12);
-            mesh12.renderOrder = renderOrder;
-
-            group.add(mesh12);
-        }
-
-        return group;
-    }
+    // me.createPlaneStencilGroup = function (
+    //     geometry,
+    //     groupName,
+    //     geometryInner,
+    //     plane,
+    //     renderOrder
+    // ) {
+    //     var group = new THREE.Group();
+    //     group.name = groupName;
+    //     var baseMat = new THREE.MeshLambertMaterial();
+    //     baseMat.depthWrite = false;
+    //     baseMat.depthTest = false;
+    //     baseMat.colorWrite = false;
+    //     baseMat.stencilWrite = true;
+    //     baseMat.stencilFunc = THREE.AlwaysStencilFunc;
+    //
+    //     // back faces
+    //     var mat0 = baseMat.clone();
+    //     mat0.side = THREE.BackSide;
+    //     mat0.clippingPlanes = [plane];
+    //     mat0.stencilFail = THREE.IncrementWrapStencilOp;
+    //     mat0.stencilZFail = THREE.IncrementWrapStencilOp;
+    //     mat0.stencilZPass = THREE.IncrementWrapStencilOp;
+    //     var mesh0 = new THREE.Mesh(geometry, mat0);
+    //     mesh0.renderOrder = renderOrder;
+    //     group.add(mesh0);
+    //
+    //     if (geometryInner) {
+    //         // back faces2
+    //         var mat01 = baseMat.clone();
+    //         mat01.side = THREE.BackSide;
+    //         mat01.clippingPlanes = [plane];
+    //         mat01.stencilFail = THREE.DecrementWrapStencilOp;
+    //         mat01.stencilZFail = THREE.DecrementWrapStencilOp;
+    //         mat01.stencilZPass = THREE.DecrementWrapStencilOp;
+    //         var mesh01 = new THREE.Mesh(geometryInner, mat01);
+    //         mesh01.renderOrder = renderOrder;
+    //         group.add(mesh01);
+    //     }
+    //
+    //     // front faces
+    //     var mat1 = baseMat.clone();
+    //     mat1.side = THREE.FrontSide;
+    //     mat1.clippingPlanes = [plane];
+    //     mat1.stencilFail = THREE.DecrementWrapStencilOp;
+    //     mat1.stencilZFail = THREE.DecrementWrapStencilOp;
+    //     mat1.stencilZPass = THREE.DecrementWrapStencilOp;
+    //     var mesh1 = new THREE.Mesh(geometry, mat1);
+    //     mesh1.renderOrder = renderOrder;
+    //     group.add(mesh1);
+    //
+    //     if (geometryInner) {
+    //         // front faces2
+    //         var mat12 = baseMat.clone();
+    //         mat12.side = THREE.FrontSide;
+    //         mat12.clippingPlanes = [plane];
+    //         mat12.stencilFail = THREE.IncrementWrapStencilOp;
+    //         mat12.stencilZFail = THREE.IncrementWrapStencilOp;
+    //         mat12.stencilZPass = THREE.IncrementWrapStencilOp;
+    //
+    //         var mesh12 = new THREE.Mesh(geometryInner, mat12);
+    //         mesh12.renderOrder = renderOrder;
+    //
+    //         group.add(mesh12);
+    //     }
+    //
+    //     return group;
+    // }
 
     me.render3D = function () {
 
@@ -3349,6 +3160,7 @@ function GeomView(container, width, height) {
             if (me.cartoObjects) {
                 setObjectsToCut(me, me.cartoObjects, []);
             }
+            // me.flushGeomViewStencilObjs()
         }
 
         // this.selection = new CAPS.Selection(
@@ -3900,14 +3712,19 @@ function process_face_mesh(rootNode, jsonEntry, color) {
     jsonFace.scale = 1.0;
     const jsonLoader = new LegacyJSONLoader(THREE);
 
-    jsonLoader.parse(jsonFace, /* texturePath */ undefined).then(model => {
-        const material = new THREE.MeshBasicMaterial({color: rgb2hex(color), side: THREE.BackSide});
-        const mesh = new THREE.Mesh(model.geometry, material);
-        mesh.properties = mesh.properties || {};
-        mesh.properties.OCCType = "face";
-        mesh.properties.OCCName = jsonFace.name;
-        rootNode.add(mesh);
-    }).catch(err => {
+    jsonLoader.parse(jsonFace, /* texturePath */ undefined)
+        .then(model => {
+            const material = new THREE.MeshLambertMaterial({
+                color: rgb2hex(color),
+                side: THREE.DoubleSide
+            });
+            const mesh = new THREE.Mesh(model.geometry, material);
+            mesh.properties = mesh.properties || {};
+            mesh.properties.OCCType = "face";
+            mesh.properties.OCCName = jsonFace.name;
+
+            rootNode.add(mesh);
+        }).catch(err => {
         console.error(err);
     });
 
@@ -3922,13 +3739,15 @@ function process_edge_mesh(rootNode, jsonEdge) {
         geometry.vertices.push(new THREE.Vector3(v[i], v[i + 1], v[i + 2]));
         i += 3;
     }
-    const material = new THREE.LineDashedMaterial({linewidth: 4, color: 0xffffff});
+    // const material = new THREE.LineDashedMaterial({linewidth: 10, color: 0xffffff});
+    const material = new THREE.LineBasicMaterial({linewidth: 10, color: 0xffffff});
     const polyline = new THREE.Line(geometry, material);
     polyline.properties = polyline.properties || {};
     polyline.properties.OCCType = "edge";
     polyline.properties.OCCName = jsonEdge.name;
     rootNode.add(polyline);
 }
+
 
 /**
  *
