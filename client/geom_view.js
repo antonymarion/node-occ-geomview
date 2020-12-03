@@ -2772,11 +2772,13 @@ function GeomView(container, width, height) {
     const ratio = width / height;
 
     if (use_CombinedCamera) {
-        me.camera = new THREE.CombinedCamera(width, height, 35, 10, 100, -500, 1000);
+        // me.camera = new THREE.CombinedCamera(width, height, 35, 10, 100, -500, 1000);
+        me.camera = new THREE.CombinedCamera(width, height, 35, 1, 10000, -500, 1000);
         //  width, height, fov, near, far, orthoNear, orthoFar
         me.camera.toOrthographic();
     } else {
-        me.camera = new THREE.PerspectiveCamera(35, ratio, 10, 1000); // fov, aspect, near, far
+        // me.camera = new THREE.PerspectiveCamera(35, ratio, 10, 1000); // fov, aspect, near, far
+        me.camera = new THREE.PerspectiveCamera(35, ratio, 1, 100000); // fov, aspect, near, far
 
         me.camera.toXXXView = function (dirView, up) {
 
@@ -3001,11 +3003,11 @@ function GeomView(container, width, height) {
         }
     };
 
-    me.flushGeomViewStencilObjs = function () {
-        Object.keys(this.clippedColorFronts.length > 0) ? this.clippedColorFronts = {} : null;
-        Object.keys(this.planeObjects.length > 0) ? this.planeObjects = {} : null;
-        Object.keys(this.stencilGroups.length > 0) ? this.stencilGroups = {} : null;
-    }
+    // me.flushGeomViewStencilObjs = function () {
+    //     Object.keys(this.clippedColorFronts.length > 0) ? this.clippedColorFronts = {} : null;
+    //     Object.keys(this.planeObjects.length > 0) ? this.planeObjects = {} : null;
+    //     Object.keys(this.stencilGroups.length > 0) ? this.stencilGroups = {} : null;
+    // }
 
     me.showClippingPlane = function (globalPlane, isVisible) {
         var clippingPlaneHelperNode = me.__clippingPlaneHelperNode();
@@ -3966,4 +3968,3 @@ GeomView.prototype.onChangeView = function (viewName) {
 
 exports.GeomView = GeomView;
 exports.GeomTools = GeomTools;
-
