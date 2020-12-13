@@ -2773,7 +2773,7 @@ function GeomView(container, width, height) {
 
     if (use_CombinedCamera) {
         // me.camera = new THREE.CombinedCamera(width, height, 35, 10, 100, -500, 1000);
-        me.camera = new THREE.CombinedCamera(width, height, 35, 1, 10000, -500, 1000);
+        me.camera = new THREE.CombinedCamera(width, height, 70, 1, 10000, -500, 1000);
         //  width, height, fov, near, far, orthoNear, orthoFar
         me.camera.toOrthographic();
     } else {
@@ -3705,7 +3705,7 @@ function rgb2hex(rgb) {
     return (rgb[0] * 255 << 16) + (rgb[1] * 255 << 8) + rgb[2] * 255;
 }
 
-function process_face_mesh_old(rootNode, jsonEntry, color) {
+function process_face_mesh(rootNode, jsonEntry, color) {
 
     const jsonFace = jsonEntry.mesh;
 
@@ -3729,7 +3729,7 @@ function process_face_mesh_old(rootNode, jsonEntry, color) {
     });
 }
 
-function process_face_mesh(solidMesh, rootNode, jsonEntry, color) {
+function process_face_mesh_new(solidMesh, rootNode, jsonEntry, color) {
     const geometry = new THREE.BufferGeometry();
     geometry.setIndex(jsonEntry.indexes);
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(solidMesh.vertices), 3));
@@ -3748,7 +3748,7 @@ function process_face_mesh(solidMesh, rootNode, jsonEntry, color) {
     rootNode.add(mesh);
 }
 
-function process_edge_mesh(solidMesh, rootNode, jsonEdge) {
+function process_edge_mesh_new(solidMesh, rootNode, jsonEdge) {
     const geometry = new THREE.BufferGeometry();
     geometry.setIndex(jsonEdge.indexes);
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(solidMesh.vertices), 3));
@@ -3763,7 +3763,7 @@ function process_edge_mesh(solidMesh, rootNode, jsonEdge) {
     rootNode.add(polyline);
 }
 
-function process_edge_mesh_old(rootNode, jsonEdge) {
+function process_edge_mesh(rootNode, jsonEdge) {
     const v = jsonEdge.mesh;
     const geometry = new THREE.Geometry();
     let i = 0;
@@ -3806,11 +3806,13 @@ GeomView.prototype.updateNodeSolidMesh = function (node, solidMesh) {
     // one object
     solidMesh.faces.forEach(function (face) {
         // one face
-        process_face_mesh(solidMesh, group, face, color);
+        // process_face_mesh_new(solidMesh, group, face, color);
+        process_face_mesh(group, face, color);
     });
     solidMesh.edges.forEach(function (edge) {
         // one face
-        process_edge_mesh(solidMesh, group, edge);
+        // process_edge_mesh_new(solidMesh, group, edge);
+        process_edge_mesh(group, edge);
     });
 
 };
