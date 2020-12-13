@@ -3705,7 +3705,7 @@ function rgb2hex(rgb) {
     return (rgb[0] * 255 << 16) + (rgb[1] * 255 << 8) + rgb[2] * 255;
 }
 
-function process_face_mesh(rootNode, jsonEntry, color) {
+function process_face_mesh_old(rootNode, jsonEntry, color) {
 
     const jsonFace = jsonEntry.mesh;
 
@@ -3727,11 +3727,43 @@ function process_face_mesh(rootNode, jsonEntry, color) {
         }).catch(err => {
         console.error(err);
     });
-
-
 }
 
-function process_edge_mesh(rootNode, jsonEdge) {
+function process_face_mesh(solidMesh, rootNode, jsonEntry, color) {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setIndex(jsonEntry.indexes);
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(solidMesh.vertices), 3));
+    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(new Float32Array(solidMesh.normals), 3));
+    // geometry.setNormalIndex(jsonEntry.normalIndexes);
+    const material = new THREE.MeshBasicMaterial({
+        color: rgb2hex(color),
+        side: THREE.DoubleSide
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    mesh.properties = mesh.properties || {};
+    mesh.properties.OCCType = "face";
+    mesh.properties.OCCName = jsonEntry.name;
+
+    rootNode.add(mesh);
+}
+
+function process_edge_mesh(solidMesh, rootNode, jsonEdge) {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setIndex(jsonEdge.indexes);
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(solidMesh.vertices), 3));
+    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(new Float32Array(solidMesh.normals), 3));
+    const material = new THREE.LineBasicMaterial({linewidth: 10, color: 0xffffff});
+    const polyline = new THREE.Line(geometry, material);
+
+    polyline.properties = polyline.properties || {};
+    polyline.properties.OCCType = "edge";
+    polyline.properties.OCCName = jsonEdge.name;
+
+    rootNode.add(polyline);
+}
+
+function process_edge_mesh_old(rootNode, jsonEdge) {
     const v = jsonEdge.mesh;
     const geometry = new THREE.Geometry();
     let i = 0;
@@ -3774,11 +3806,11 @@ GeomView.prototype.updateNodeSolidMesh = function (node, solidMesh) {
     // one object
     solidMesh.faces.forEach(function (face) {
         // one face
-        process_face_mesh(group, face, color);
+        process_face_mesh(solidMesh, group, face, color);
     });
     solidMesh.edges.forEach(function (edge) {
         // one face
-        process_edge_mesh(group, edge);
+        process_edge_mesh(solidMesh, group, edge);
     });
 
 };
