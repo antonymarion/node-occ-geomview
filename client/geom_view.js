@@ -16,7 +16,7 @@
  */
 
 const THREE = global.THREE;
-const fs = require('fs');
+// const fs = require('fs');
 const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils.js').BufferGeometryUtils;
 THREE.BufferGeometryUtils = BufferGeometryUtils;
 require('three/examples/js/exporters/GLTFExporter.js');
@@ -455,17 +455,18 @@ class LegacyJSONLoader {
 
     load(url) {
         let promise = new Promise((resolve, reject) => {
-            fs.readFile(url, (err, data) => {
-                if (err)
-                    throw err;
-                var json = JSON.parse(data);
-                try {
-                    let parsedObj = this.ObjectLoader.parse(json);
-                    resolve(parsedObj);
-                } catch (err) {
-                    reject(err);
-                }
-            });
+            resolve()
+            // fs.readFile(url, (err, data) => {
+            //     if (err)
+            //         throw err;
+            //     var json = JSON.parse(data);
+            //     try {
+            //         let parsedObj = this.ObjectLoader.parse(json);
+            //         resolve(parsedObj);
+            //     } catch (err) {
+            //         reject(err);
+            //     }
+            // });
         });
         return promise;
     }
