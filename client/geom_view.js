@@ -3722,7 +3722,7 @@ function process_face_mesh(rootNode, jsonEntry, color) {
             const mesh = new THREE.Mesh(model.geometry, material);
             mesh.properties = mesh.properties || {};
             mesh.properties.OCCType = "face";
-            mesh.properties.OCCName = jsonFace.name;
+            mesh.properties.OCCName = jsonEntry.name;
 
             rootNode.add(mesh);
         }).catch(err => {
