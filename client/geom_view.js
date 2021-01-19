@@ -2774,12 +2774,12 @@ function GeomView(container, width, height) {
 
     if (use_CombinedCamera) {
         // me.camera = new THREE.CombinedCamera(width, height, 35, 10, 100, -500, 1000);
-        me.camera = new THREE.CombinedCamera(width, height, 70, 1, 1000, -500, 1000);
+        me.camera = new THREE.CombinedCamera(width, height, 70, 1, 10000, -500, 1000);
         //  width, height, fov, near, far, orthoNear, orthoFar
         me.camera.toOrthographic();
     } else {
         // me.camera = new THREE.PerspectiveCamera(35, ratio, 10, 1000); // fov, aspect, near, far
-        me.camera = new THREE.PerspectiveCamera(35, ratio, 1, 1000); // fov, aspect, near, far
+        me.camera = new THREE.PerspectiveCamera(35, ratio, 1, 10000); // fov, aspect, near, far
 
         me.camera.toXXXView = function (dirView, up) {
 
